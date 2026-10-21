@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BiblioTech</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; color: #222; }
+        header { background: #1f4e79; color: #fff; padding: 16px 24px; }
+        header h1 { margin: 0; font-size: 26px; }
+        header p { margin: 4px 0 0; font-size: 14px; }
+        main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+        section { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
+        h2 { margin-top: 0; font-size: 20px; color: #1f4e79; }
+        label { display: block; margin: 10px 0 4px; font-weight: bold; }
+        input[type=text], input[type=number], select { padding: 6px 8px; width: 260px; }
+        button { background: #1f4e79; color: #fff; border: 0; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 8px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+        th, td { border: 1px solid #d0d7de; padding: 6px 8px; text-align: left; }
+        th { background: #e8eef4; }
+        .ok { color: #1a7f37; font-weight: bold; }
+        .error { color: #cf222e; font-weight: bold; }
+        .tarjeta { border-left: 4px solid #1f4e79; padding: 8px 12px; margin-top: 12px; background: #f6f8fa; }
+        .opciones label { display: inline; font-weight: normal; margin-right: 16px; }
+    </style>
+</head>
+<body>
+<header>
+    <h1 id="titulo">BiblioTech</h1>
+    <p>Sistema de biblioteca &middot; IESTP Manuel N&uacute;&ntilde;ez Butr&oacute;n</p>
+</header>
+
+<main>
+    <!-- 1. CATÁLOGO: usa GET /libros -->
+    <section id="seccionCatalogo">
+        <h2>Catálogo de libros</h2>
+        <button id="btnCargar" type="button">Cargar libros</button>
+        <span id="totalLibros"></span>
+        <table id="tablaLibros">
+            <thead>
+            <tr><th>ID</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Año</th></tr>
+            </thead>
+            <tbody id="cuerpoTabla"></tbody>
+        </table>
+    </section>
+
+    <!-- 2. BÚSQUEDA: usa GET /libros/{id} -->
+    <section id="seccionBuscar">
+        <h2>Buscar libro por ID</h2>
+        <label for="idLibro">ID del libro</label>
+        <input id="idLibro" name="idLibro" type="number" min="1" placeholder="Ejemplo: 2">
+        <button id="btnBuscar" type="button">Buscar</button>
+        <div id="resultado"></div>
+    </section>
+
+    <!-- 3. PRÉSTAMO: formulario simulado (no se guarda en el servidor) -->
+    <section id="seccionPrestamo">
+        <h2>Solicitar préstamo</h2>
+        <label for="nombreLector">Nombre del lector</label>
+        <input id="nombreLector" name="nombreLector" type="text" placeholder="Nombres y apellidos">
+
+        <label for="libroPrestamo">Libro</label>
+        <select id="libroPrestamo" name="libroPrestamo">
+            <option value="">-- Seleccione --</option>
+        </select>
+
+        <label>Tipo de préstamo</label>
+        <div class="opciones">
+            <input id="tipoSala" type="radio" name="tipo" value="En sala" checked>
+            <label for="tipoSala">En sala</label>
+            <input id="tipoDomicilio" type="radio" name="tipo" value="A domicilio">
+            <label for="tipoDomicilio">A domicilio</label>
+        </div>
+
+        <label>
+            <input id="aceptaReglamento" type="checkbox"> Acepto el reglamento de la biblioteca
+        </label>
+
+        <button id="btnSolicitar" type="button">Solicitar préstamo</button>
+        <p id="mensajePrestamo"></p>
+    </section>
+</main>
+
+<script>
+    // Pequeña espera para simular una red lenta (se usa al explicar las esperas)
+    const RETARDO_MS = 600;
+    const esperar = ms => new Promise(r => setTimeout(r, ms));
+
+    // ---------- 1. Catálogo ----------
+    async function cargarLibros() {
+        const cuerpo = document.getElementById('cuerpoTabla');
+        const total = document.getElementById('totalLibros');
+        cuerpo.innerHTML = '';
+        total.textContent = 'Cargando...';
+        await esperar(RETARDO_MS);
+        const respuesta = await fetch('/libros');
+        const libros = await respuesta.json();
+        libros.forEach((libro, i) => {
+            const fila = document.createElement('tr');
+            fila.id = 'fila-' + (i + 1);
+            fila.innerHTML =
+                '<td>' + (i + 1) + '</td>' +
+                '<td class="col-titulo">' + libro.titulo + '</td>' +
+                '<td>' + libro.autor + '</td>' +
+                '<td>' + libro.categoria + '</td>' +
+                '<td>' + libro.anio + '</td>';
+            cuerpo.appendChild(fila);
+        });
+        total.textContent = libros.length + ' libros';
+    }
+
+    // ---------- 2. Búsqueda ----------
+    async function buscarLibro() {
+        const resultado = document.getElementById('resultado');
+        const id = document.getElementById('idLibro').value.trim();
+        resultado.innerHTML = '';
+        if (id === '') {
+            resultado.innerHTML = '<p id="mensajeBusqueda" class="error">Ingrese un ID</p>';
+            return;
+        }
+        resultado.innerHTML = '<p id="cargando">Buscando...</p>';
+        await esperar(RETARDO_MS);
+        const respuesta = await fetch('/libros/' + encodeURIComponent(id));
+        if (respuesta.status === 404) {
+            resultado.innerHTML = '<p id="mensajeBusqueda" class="error">Libro no encontrado</p>';
+            return;
+        }
+        if (!respuesta.ok) {
+            resultado.innerHTML = '<p id="mensajeBusqueda" class="error">Error ' + respuesta.status + '</p>';
+            return;
+        }
+        const libro = await respuesta.json();
+        resultado.innerHTML =
+            '<div id="tarjetaLibro" class="tarjeta">' +
+            '<p><strong>Título:</strong> <span id="tituloLibro">' + libro.titulo + '</span></p>' +
+            '<p><strong>Autor:</strong> <span id="autorLibro">' + libro.autor + '</span></p>' +
+            '<p><strong>Categoría:</strong> <span id="categoriaLibro">' + libro.categoria + '</span></p>' +
+            '<p><strong>Año:</strong> <span id="anioLibro">' + libro.anio + '</span></p>' +
+            '</div>';
+    }
+
+    // ---------- 3. Préstamo (simulado) ----------
+    async function llenarSelectLibros() {
+        const respuesta = await fetch('/libros');
+        const libros = await respuesta.json();
+        const select = document.getElementById('libroPrestamo');
+        libros.forEach(libro => {
+            const opcion = document.createElement('option');
+            opcion.value = libro.titulo;
+            opcion.textContent = libro.titulo;
+            select.appendChild(opcion);
+        });
+    }
+
+    function solicitarPrestamo() {
+        const mensaje = document.getElementById('mensajePrestamo');
+        const nombre = document.getElementById('nombreLector').value.trim();
+        const libro = document.getElementById('libroPrestamo').value;
+        const tipo = document.querySelector('input[name="tipo"]:checked').value;
+        const acepta = document.getElementById('aceptaReglamento').checked;
+
+        mensaje.className = 'error';
+        if (nombre === '') { mensaje.textContent = 'El nombre es obligatorio'; return; }
+        if (libro === '') { mensaje.textContent = 'Seleccione un libro'; return; }
+        if (!acepta) { mensaje.textContent = 'Debe aceptar el reglamento'; return; }
+
+        mensaje.className = 'ok';
+        mensaje.textContent = 'Préstamo registrado: ' + libro + ' para ' + nombre + ' (' + tipo + ')';
+    }
+
+    document.getElementById('btnCargar').addEventListener('click', cargarLibros);
+    document.getElementById('btnBuscar').addEventListener('click', buscarLibro);
+    document.getElementById('btnSolicitar').addEventListener('click', solicitarPrestamo);
+    llenarSelectLibros();
+</script>
+</body>
+</html>
