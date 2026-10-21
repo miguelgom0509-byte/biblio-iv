@@ -1,0 +1,43 @@
+package pe.edu.iesptecnojuliaca.biblio.model;
+public class Estudiante {
+
+    private Long id;
+    private String nombre;
+    private boolean activo;
+
+    // Constructor vacío (buena práctica tenerlo)
+    public Estudiante() {
+    }
+
+    // Constructor que usa tu Repositorio
+    public Estudiante(Long id, String nombre, boolean activo) {
+        this.id = id;
+        this.nombre = nombre;
+        this.activo = activo;
+    }
+
+    // Getters y Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+}
