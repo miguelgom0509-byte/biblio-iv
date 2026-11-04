@@ -140,15 +140,13 @@
                     <thead>
                     <tr><th>ID</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Año</th><th>Acciones</th></tr>
                     </thead>
-                    <tbody id="tablaLibrosBody">
-                    <!-- Se llena con JS desde Spring Boot -->
-                    </tbody>
+                    <tbody id="tablaLibrosBody"></tbody>
                 </table>
             </div>
         </div>
     </section>
 
-    <!-- 3. PRÉSTAMOS (Simulados localmente) -->
+    <!-- 3. PRÉSTAMOS -->
     <section id="prestamos" class="page-section">
         <div class="page-header"><h1 class="page-title">Gestión de Préstamos</h1></div>
         <div class="card" style="margin-bottom: 24px; padding: 24px;">
@@ -211,9 +209,8 @@
 <div id="toast-container"></div>
 
 <script>
-    // Variables globales
     let librosGlobales = [];
-    let prestamos = []; // Préstamos locales simulados
+    let prestamos = [];
 
     // --- NAVEGACIÓN Y UI ---
     function switchTab(tabId, element) {
@@ -237,10 +234,9 @@
     }
 
     // ==========================================
-    // CONEXIÓN CON SPRING BOOT (Backend)
+    // CONEXIÓN CON SPRING BOOT (FETCH API)
     // ==========================================
 
-    // 1. GET: Cargar libros
     async function cargarLibrosBackend() {
         try {
             const respuesta = await fetch('/libros');
@@ -254,7 +250,6 @@
         }
     }
 
-    // 2. POST: Guardar libro
     async function guardarLibroBackend() {
         const titulo = document.getElementById('nuevoTitulo').value;
         const autor = document.getElementById('nuevoAutor').value;
@@ -263,7 +258,6 @@
 
         if(!titulo || !autor) return showToast('Título y autor son obligatorios', 'error');
 
-        // Creamos el objeto igual que la clase Libro de Java
         const nuevoLibro = {
             titulo: titulo,
             autor: autor,
@@ -281,7 +275,7 @@
             if (!respuesta.ok) throw new Error('Error al guardar');
 
             cerrarModalLibro();
-            cargarLibrosBackend(); // Recargar la tabla con los datos actualizados
+            cargarLibrosBackend();
             showToast('Libro guardado exitosamente', 'success');
         } catch (error) {
             console.error(error);
@@ -289,14 +283,12 @@
         }
     }
 
-    // 3. DELETE: Eliminar libro
     async function eliminarLibroBackend(id) {
         if(confirm('¿Estás seguro de eliminar este libro de la base de datos?')) {
             try {
                 const respuesta = await fetch(`/libros/${id}`, { method: 'DELETE' });
                 if (!respuesta.ok) throw new Error('Error al eliminar');
-
-                cargarLibrosBackend(); // Recargar la tabla
+                cargarLibrosBackend();
                 showToast('Libro eliminado correctamente', 'success');
             } catch (error) {
                 console.error(error);
@@ -324,7 +316,6 @@
             `;
             tbody.appendChild(tr);
         });
-
         actualizarSelectLibros();
     }
 
@@ -347,7 +338,7 @@
         document.getElementById('nuevoAnio').value = '';
     }
 
-    // --- LÓGICA DE PRÉSTAMOS (Local) ---
+    // --- PRÉSTAMOS LOCALES ---
     function actualizarSelectLibros() {
         const select = document.getElementById('libroPrestamo');
         select.innerHTML = '<option value="">Seleccione un libro...</option>';
@@ -409,7 +400,6 @@
     }
 
     // --- INICIALIZACIÓN ---
-    // Cuando la página termine de cargar, pide los datos a Spring Boot
     document.addEventListener('DOMContentLoaded', () => {
         cargarLibrosBackend();
     });
