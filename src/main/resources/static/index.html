@@ -68,7 +68,7 @@
 
         /* --- FORMS & BUTTONS --- */
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end; }
-        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;}
         .form-group label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
         input[type="text"], input[type="number"], select { padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: 0.2s; font-size: 14px; background: var(--surface); color: var(--text-main); width: 100%; }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
@@ -76,6 +76,8 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-warning { background: #fef3c7; color: #d97706; }
+        .btn-warning:hover { background: #fde68a; }
         .btn-danger { background: #fee2e2; color: var(--danger); }
         .btn-danger:hover { background: #fecaca; }
         .btn-icon { padding: 8px; border-radius: 6px; height: auto; }
@@ -137,7 +139,8 @@
     <section id="catalogo" class="page-section">
         <div class="page-header">
             <h1 class="page-title">Catálogo de Libros</h1>
-            <button class="btn btn-primary" onclick="abrirModalLibro()"><i class="fa-solid fa-plus"></i> Agregar Libro</button>
+            <!-- Botón para abrir modal en modo CREAR -->
+            <button class="btn btn-primary" onclick="abrirModalCrear()"><i class="fa-solid fa-plus"></i> Agregar Libro</button>
         </div>
         <div class="card">
             <div class="card-header">
@@ -168,22 +171,22 @@
             </div>
             <div style="padding: 24px;">
                 <div class="form-grid">
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 0;">
                         <label>Estudiante Solicitante</label>
                         <select id="idEstudiante">
                             <option value="">Cargando estudiantes...</option>
                         </select>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 0;">
                         <label>Libro Solicitado</label>
                         <select id="libroId">
                             <option value="">Cargando libros...</option>
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <button class="btn btn-primary" id="btnEvaluar" onclick="evaluarPrestamoBackend()">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <button class="btn btn-primary" id="btnEvaluar" onclick="evaluarPrestamoBackend()" style="width: 100%;">
                             <i class="fa-solid fa-check-circle"></i> Evaluar y Prestar
                         </button>
                     </div>
@@ -209,28 +212,39 @@
     </section>
 </main>
 
+<!-- MODAL (Sirve para Crear y Editar) -->
 <div class="modal-overlay" id="modalLibro">
     <div class="modal">
         <div class="modal-header">
-            <h2 class="modal-title">Agregar Nuevo Libro</h2>
-            <button class="close-btn" onclick="cerrarModalLibro()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title" id="modalTitle">Agregar Nuevo Libro</h2>
+            <button class="close-btn" onclick="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="form-group" style="margin-bottom: 16px;">
+
+        <!-- ID oculto para saber si estamos editando -->
+        <input type="hidden" id="editLibroId" value="">
+
+        <div class="form-group">
             <label>Título del Libro</label>
             <input type="text" id="nuevoTitulo" placeholder="Ej. Cien Años de Soledad">
         </div>
-        <div class="form-group" style="margin-bottom: 16px;">
+        <div class="form-group">
             <label>Autor</label>
             <input type="text" id="nuevoAutor" placeholder="Ej. Gabriel García Márquez">
         </div>
-        <div class="form-group" style="margin-bottom: 16px;">
+        <div class="form-group">
             <label>Categoría</label>
             <input type="text" id="nuevaCategoria" placeholder="Ej. Novela">
         </div>
-        <div class="form-group" style="margin-bottom: 24px;">
+        <div class="form-group">
             <label>Año</label>
             <input type="number" id="nuevoAnio" placeholder="Ej. 1967">
         </div>
+        <!-- NUEVO CAMPO DE STOCK -->
+        <div class="form-group">
+            <label>Stock (Cantidad de ejemplares)</label>
+            <input type="number" id="nuevoStock" placeholder="Ej. 50" value="50">
+        </div>
+
         <button class="btn btn-primary" id="btnGuardarLibro" style="width: 100%;" onclick="guardarLibroBackend()">Guardar Libro</button>
     </div>
 </div>
@@ -242,6 +256,7 @@
     let estudiantesGlobales = [];
     let prestamos = [];
 
+    // --- LÓGICA DE MODO OSCURO Y NAVEGACIÓN ---
     function toggleTheme() {
         const html = document.documentElement;
         const btn = document.getElementById('themeBtn');
@@ -274,6 +289,7 @@
         }, 3000);
     }
 
+    // --- CARGA DE DATOS ---
     async function cargarLibrosBackend() {
         try {
             const respuesta = await fetch('/libros');
@@ -306,12 +322,146 @@
         const select = document.getElementById('libroId');
         select.innerHTML = '<option value="">Seleccione un libro...</option>';
         librosGlobales.forEach(libro => {
-            const stockActual = libro.stock ?? 0; // Evita undefined
+            const stockActual = libro.stock ?? 0;
             const disabled = stockActual <= 0 ? 'disabled' : '';
             select.innerHTML += `<option value="${libro.id}" ${disabled}>${libro.titulo} (Stock: ${stockActual})</option>`;
         });
     }
 
+    // --- RENDERIZADO DE TABLA DE LIBROS (CON BOTONES DE EDITAR Y ELIMINAR) ---
+    function renderizarLibros(librosAMostrar) {
+        const tbody = document.getElementById('tablaLibrosBody');
+        if (librosAMostrar.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fa-solid fa-book-open"></i><br>No hay libros en el catálogo</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = '';
+        librosAMostrar.forEach(libro => {
+            const stockActual = libro.stock ?? 0;
+            const colorStock = stockActual > 0 ? '#059669' : '#ef4444';
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${libro.id}</td>
+                    <td style="font-weight: 500;">${libro.titulo}</td>
+                    <td>${libro.autor}</td>
+                    <td>${libro.categoria}</td>
+                    <td>${libro.anio}</td>
+                    <td><strong style="color:${colorStock}">${stockActual}</strong></td>
+                    <td>
+                        <!-- BOTÓN EDITAR -->
+                        <button class="btn btn-warning btn-icon" onclick="abrirModalEditar(${libro.id})" title="Editar Libro"><i class="fa-solid fa-pen"></i></button>
+                        <!-- BOTÓN ELIMINAR -->
+                        <button class="btn btn-danger btn-icon" onclick="eliminarLibroBackend(${libro.id})" title="Eliminar Libro"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function filtrarLibros() {
+        const texto = document.getElementById('buscadorLibros').value.toLowerCase();
+        const filtrados = librosGlobales.filter(l =>
+            l.titulo.toLowerCase().includes(texto) || l.autor.toLowerCase().includes(texto)
+        );
+        renderizarLibros(filtrados);
+    }
+
+    // --- MODAL: CREAR Y EDITAR ---
+    function abrirModalCrear() {
+        document.getElementById('modalTitle').textContent = "Agregar Nuevo Libro";
+        document.getElementById('editLibroId').value = ""; // Vacío significa que es nuevo
+        document.getElementById('nuevoTitulo').value = '';
+        document.getElementById('nuevoAutor').value = '';
+        document.getElementById('nuevaCategoria').value = '';
+        document.getElementById('nuevoAnio').value = '';
+        document.getElementById('nuevoStock').value = '50'; // Stock por defecto
+        document.getElementById('modalLibro').classList.add('active');
+    }
+
+    function abrirModalEditar(id) {
+        const libro = librosGlobales.find(l => l.id === id);
+        if(!libro) return;
+
+        document.getElementById('modalTitle').textContent = "Editar Libro";
+        document.getElementById('editLibroId').value = libro.id; // Guardamos el ID para saber que es edición
+        document.getElementById('nuevoTitulo').value = libro.titulo;
+        document.getElementById('nuevoAutor').value = libro.autor;
+        document.getElementById('nuevaCategoria').value = libro.categoria;
+        document.getElementById('nuevoAnio').value = libro.anio;
+        document.getElementById('nuevoStock').value = libro.stock ?? 0;
+
+        document.getElementById('modalLibro').classList.add('active');
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalLibro').classList.remove('active');
+    }
+
+    // --- GUARDAR (POST O PUT DEPENDIENDO DEL ID) ---
+    async function guardarLibroBackend() {
+        const btn = document.getElementById('btnGuardarLibro');
+        const idEditando = document.getElementById('editLibroId').value;
+
+        const titulo = document.getElementById('nuevoTitulo').value;
+        const autor = document.getElementById('nuevoAutor').value;
+        const categoria = document.getElementById('nuevaCategoria').value;
+        const anio = document.getElementById('nuevoAnio').value;
+        const stock = document.getElementById('nuevoStock').value;
+
+        if(!titulo || !autor) return showToast('Título y autor son obligatorios', 'error');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Guardando...';
+
+        const libroData = {
+            titulo,
+            autor,
+            categoria,
+            anio: anio ? parseInt(anio) : 0,
+            stock: stock ? parseInt(stock) : 0
+        };
+
+        try {
+            let url = '/libros';
+            let method = 'POST';
+
+            // Si hay un ID, es porque estamos editando
+            if (idEditando) {
+                url = `/libros/${idEditando}`;
+                method = 'PUT';
+            }
+
+            await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(libroData)
+            });
+
+            cerrarModal();
+            cargarLibrosBackend();
+            showToast(idEditando ? 'Libro actualizado exitosamente' : 'Libro guardado exitosamente', 'success');
+        } catch (error) {
+            showToast('Error al guardar el libro', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Guardar Libro';
+        }
+    }
+
+    async function eliminarLibroBackend(id) {
+        if(confirm('¿Estás seguro de eliminar este libro?')) {
+            try {
+                await fetch(`/libros/${id}`, { method: 'DELETE' });
+                cargarLibrosBackend();
+                showToast('Libro eliminado correctamente', 'success');
+            } catch (error) {
+                showToast('Error al eliminar el libro', 'error');
+            }
+        }
+    }
+
+    // --- LÓGICA DE PRÉSTAMOS ---
     async function evaluarPrestamoBackend() {
         const idEstudiante = document.getElementById('idEstudiante').value;
         const libroId = document.getElementById('libroId').value;
@@ -381,91 +531,6 @@
         prestamos.splice(index, 1);
         renderizarPrestamos();
         showToast('Devolución registrada correctamente', 'success');
-    }
-
-    async function guardarLibroBackend() {
-        const btn = document.getElementById('btnGuardarLibro');
-        const titulo = document.getElementById('nuevoTitulo').value;
-        const autor = document.getElementById('nuevoAutor').value;
-        const categoria = document.getElementById('nuevaCategoria').value;
-        const anio = document.getElementById('nuevoAnio').value;
-
-        if(!titulo || !autor) return showToast('Título y autor son obligatorios', 'error');
-
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Guardando...';
-
-        try {
-            await fetch('/libros', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ titulo, autor, categoria, anio: anio ? parseInt(anio) : 0 })
-            });
-
-            cerrarModalLibro();
-            cargarLibrosBackend();
-            showToast('Libro guardado exitosamente', 'success');
-        } catch (error) {
-            showToast('Error al guardar el libro', 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = 'Guardar Libro';
-        }
-    }
-
-    async function eliminarLibroBackend(id) {
-        if(confirm('¿Estás seguro de eliminar este libro?')) {
-            try {
-                await fetch(`/libros/${id}`, { method: 'DELETE' });
-                cargarLibrosBackend();
-                showToast('Libro eliminado correctamente', 'success');
-            } catch (error) {
-                showToast('Error al eliminar el libro', 'error');
-            }
-        }
-    }
-
-    function renderizarLibros(librosAMostrar) {
-        const tbody = document.getElementById('tablaLibrosBody');
-        if (librosAMostrar.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fa-solid fa-book-open"></i><br>No hay libros en el catálogo</td></tr>`;
-            return;
-        }
-        tbody.innerHTML = '';
-        librosAMostrar.forEach(libro => {
-            // PROTECCIÓN CONTRA UNDEFINED
-            const stockActual = libro.stock ?? 0;
-            const colorStock = stockActual > 0 ? '#059669' : '#ef4444';
-
-            tbody.innerHTML += `
-                <tr>
-                    <td>${libro.id}</td>
-                    <td style="font-weight: 500;">${libro.titulo}</td>
-                    <td>${libro.autor}</td>
-                    <td>${libro.categoria}</td>
-                    <td>${libro.anio}</td>
-                    <td><strong style="color:${colorStock}">${stockActual}</strong></td>
-                    <td><button class="btn btn-danger btn-icon" onclick="eliminarLibroBackend(${libro.id})"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>
-            `;
-        });
-    }
-
-    function filtrarLibros() {
-        const texto = document.getElementById('buscadorLibros').value.toLowerCase();
-        const filtrados = librosGlobales.filter(l =>
-            l.titulo.toLowerCase().includes(texto) || l.autor.toLowerCase().includes(texto)
-        );
-        renderizarLibros(filtrados);
-    }
-
-    function abrirModalLibro() { document.getElementById('modalLibro').classList.add('active'); }
-    function cerrarModalLibro() {
-        document.getElementById('modalLibro').classList.remove('active');
-        document.getElementById('nuevoTitulo').value = '';
-        document.getElementById('nuevoAutor').value = '';
-        document.getElementById('nuevaCategoria').value = '';
-        document.getElementById('nuevoAnio').value = '';
     }
 
     function actualizarDashboard() {
