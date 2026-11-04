@@ -12,7 +12,7 @@ public class LibroRepository {
     private final List<Libro> libros = new ArrayList<>();
 
     public LibroRepository() {
-        // Inicializamos los libros con 50 de stock
+        // Inicializamos con 50 de stock
         libros.add(new Libro(1, "Java desde cero", "Carlos Pérez", "Programación", 2026, 50));
         libros.add(new Libro(2, "Spring Boot básico", "Ana Torres", "Desarrollo Web", 2025, 50));
         libros.add(new Libro(3, "Testing de Software", "Luis Ramos", "Pruebas de Software", 2024, 50));
@@ -30,7 +30,7 @@ public class LibroRepository {
         if (libro.getId() == 0) {
             int nuevoId = libros.stream().mapToInt(Libro::getId).max().orElse(0) + 1;
             libro.setId(nuevoId);
-            if (libro.getStock() == 0) libro.setStock(50); // Stock por defecto al crear
+            if (libro.getStock() == 0) libro.setStock(50); // 50 por defecto si se crea desde el HTML
             libros.add(libro);
         } else {
             for (int i = 0; i < libros.size(); i++) {
