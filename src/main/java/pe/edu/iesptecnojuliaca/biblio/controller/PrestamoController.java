@@ -18,7 +18,6 @@ public class PrestamoController {
         this.prestamoService = prestamoService;
     }
 
-    // Quitamos 'stock' y 'prestamosActivos' de aquí. El backend los calcula.
     @GetMapping("/evaluar")
     public ResponseEntity<Map<String, Object>> evaluarPrestamo(
             @RequestParam int idEstudiante,
