@@ -146,31 +146,37 @@
         </div>
     </section>
 
-    <!-- 3. PRÉSTAMOS -->
+    <!-- 3. PRÉSTAMOS (CONECTADO AL BACKEND) -->
     <section id="prestamos" class="page-section">
         <div class="page-header"><h1 class="page-title">Gestión de Préstamos</h1></div>
+
+        <!-- Formulario para probar el endpoint /api/prestamos/evaluar -->
         <div class="card" style="margin-bottom: 24px; padding: 24px;">
-            <h3 style="margin-bottom: 16px; font-size: 16px;">Registrar Nuevo Préstamo</h3>
+            <h3 style="margin-bottom: 16px; font-size: 16px;">Evaluar Préstamo (Backend)</h3>
             <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
-                <div class="form-group" style="margin:0; flex: 1; min-width: 200px;">
-                    <label>Nombre del Estudiante</label>
-                    <input type="text" id="nombreLector" placeholder="Ej. Juan Pérez" style="width: 100%;">
+                <div class="form-group" style="margin:0; flex: 1; min-width: 150px;">
+                    <label>ID del Estudiante</label>
+                    <input type="number" id="idEstudiante" placeholder="Ej. 1" value="1" style="width: 100%;">
                 </div>
-                <div class="form-group" style="margin:0; flex: 1; min-width: 200px;">
-                    <label>Libro a Prestar</label>
-                    <select id="libroPrestamo" style="width: 100%;">
-                        <option value="">Seleccione un libro...</option>
-                    </select>
+                <div class="form-group" style="margin:0; flex: 1; min-width: 150px;">
+                    <label>Stock Disponible</label>
+                    <input type="number" id="stockLibro" placeholder="Ej. 5" value="5" style="width: 100%;">
                 </div>
-                <button class="btn btn-primary" onclick="registrarPrestamo()" style="height: 42px;"><i class="fa-solid fa-save"></i> Registrar</button>
+                <div class="form-group" style="margin:0; flex: 1; min-width: 150px;">
+                    <label>Préstamos Activos</label>
+                    <input type="number" id="prestamosActivos" placeholder="Ej. 0" value="0" style="width: 100%;">
+                </div>
+                <button class="btn btn-primary" onclick="evaluarPrestamoBackend()" style="height: 42px;"><i class="fa-solid fa-check-circle"></i> Evaluar Préstamo</button>
             </div>
         </div>
+
+        <!-- Tabla de Préstamos Locales -->
         <div class="card">
-            <div class="card-header"><h3 style="font-size: 16px;">Préstamos Activos</h3></div>
+            <div class="card-header"><h3 style="font-size: 16px;">Registro de Préstamos (Local)</h3></div>
             <div class="table-container">
                 <table>
                     <thead>
-                    <tr><th>Libro</th><th>Estudiante</th><th>Fecha Préstamo</th><th>Acciones</th></tr>
+                    <tr><th>ID Estudiante</th><th>Libro</th><th>Fecha Préstamo</th><th>Acciones</th></tr>
                     </thead>
                     <tbody id="tablaPrestamosBody"></tbody>
                 </table>
@@ -210,7 +216,7 @@
 
 <script>
     let librosGlobales = [];
-    let prestamos = [];
+    let prestamos = []; // Préstamos locales (simulados para la tabla)
 
     // --- NAVEGACIÓN Y UI ---
     function switchTab(tabId, element) {
@@ -234,9 +240,8 @@
     }
 
     // ==========================================
-    // CONEXIÓN CON SPRING BOOT (FETCH API)
+    // CONEXIÓN CON SPRING BOOT (LIBROS)
     // ==========================================
-
     async function cargarLibrosBackend() {
         try {
             const respuesta = await fetch('/libros');
@@ -258,12 +263,7 @@
 
         if(!titulo || !autor) return showToast('Título y autor son obligatorios', 'error');
 
-        const nuevoLibro = {
-            titulo: titulo,
-            autor: autor,
-            categoria: categoria,
-            anio: anio ? parseInt(anio) : 0
-        };
+        const nuevoLibro = { titulo, autor, categoria, anio: anio ? parseInt(anio) : 0 };
 
         try {
             const respuesta = await fetch('/libros', {
@@ -279,12 +279,12 @@
             showToast('Libro guardado exitosamente', 'success');
         } catch (error) {
             console.error(error);
-            showToast('Error al guardar el libro en el servidor', 'error');
+            showToast('Error al guardar el libro', 'error');
         }
     }
 
     async function eliminarLibroBackend(id) {
-        if(confirm('¿Estás seguro de eliminar este libro de la base de datos?')) {
+        if(confirm('¿Estás seguro de eliminar este libro?')) {
             try {
                 const respuesta = await fetch(`/libros/${id}`, { method: 'DELETE' });
                 if (!respuesta.ok) throw new Error('Error al eliminar');
@@ -297,11 +297,10 @@
         }
     }
 
-    // --- RENDERIZADO EN PANTALLA ---
+    // --- RENDERIZADO DE LIBROS ---
     function renderizarLibros(librosAMostrar) {
         const tbody = document.getElementById('tablaLibrosBody');
         tbody.innerHTML = '';
-
         librosAMostrar.forEach(libro => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -310,66 +309,61 @@
                 <td>${libro.autor}</td>
                 <td>${libro.categoria}</td>
                 <td>${libro.anio}</td>
-                <td>
-                    <button class="btn btn-danger btn-icon" onclick="eliminarLibroBackend(${libro.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                </td>
+                <td><button class="btn btn-danger btn-icon" onclick="eliminarLibroBackend(${libro.id})"><i class="fa-solid fa-trash"></i></button></td>
             `;
             tbody.appendChild(tr);
         });
-        actualizarSelectLibros();
     }
 
     function filtrarLibros() {
         const texto = document.getElementById('buscadorLibros').value.toLowerCase();
         const filtrados = librosGlobales.filter(l =>
-            l.titulo.toLowerCase().includes(texto) ||
-            l.autor.toLowerCase().includes(texto)
+            l.titulo.toLowerCase().includes(texto) || l.autor.toLowerCase().includes(texto)
         );
         renderizarLibros(filtrados);
     }
 
-    // --- MODAL ---
-    function abrirModalLibro() { document.getElementById('modalLibro').classList.add('active'); }
-    function cerrarModalLibro() {
-        document.getElementById('modalLibro').classList.remove('active');
-        document.getElementById('nuevoTitulo').value = '';
-        document.getElementById('nuevoAutor').value = '';
-        document.getElementById('nuevaCategoria').value = '';
-        document.getElementById('nuevoAnio').value = '';
-    }
+    // ==========================================
+    // CONEXIÓN CON SPRING BOOT (PRÉSTAMOS)
+    // ==========================================
 
-    // --- PRÉSTAMOS LOCALES ---
-    function actualizarSelectLibros() {
-        const select = document.getElementById('libroPrestamo');
-        select.innerHTML = '<option value="">Seleccione un libro...</option>';
-        librosGlobales.forEach(libro => {
-            const option = document.createElement('option');
-            option.value = libro.id;
-            option.textContent = libro.titulo;
-            select.appendChild(option);
-        });
-    }
+    // Esta función consume tu API: GET /api/prestamos/evaluar
+    async function evaluarPrestamoBackend() {
+        const idEstudiante = document.getElementById('idEstudiante').value;
+        const stock = document.getElementById('stockLibro').value;
+        const prestamosActivos = document.getElementById('prestamosActivos').value;
 
-    function registrarPrestamo() {
-        const nombre = document.getElementById('nombreLector').value;
-        const libroId = document.getElementById('libroPrestamo').value;
-        if(!nombre || !libroId) return showToast('Complete todos los campos', 'error');
+        if(!idEstudiante) return showToast('Ingrese un ID de estudiante válido', 'error');
 
-        const libroSeleccionado = librosGlobales.find(l => l.id == libroId);
-        const nuevaFecha = new Date().toISOString().split('T')[0];
+        try {
+            // Construimos la URL con los Query Params
+            const url = `/api/prestamos/evaluar?idEstudiante=${idEstudiante}&stock=${stock}&prestamosActivos=${prestamosActivos}`;
 
-        prestamos.push({
-            id: Date.now(),
-            libroTitulo: libroSeleccionado.titulo,
-            estudiante: nombre,
-            fecha: nuevaFecha
-        });
+            const respuesta = await fetch(url);
+            const data = await respuesta.json(); // Esperamos el JSON { autorizado: true/false, mensaje: "..." }
 
-        document.getElementById('nombreLector').value = '';
-        document.getElementById('libroPrestamo').value = '';
+            if (data.autorizado) {
+                showToast(data.mensaje, 'success');
 
-        renderizarPrestamos();
-        showToast(`Préstamo registrado: ${libroSeleccionado.titulo}`, 'success');
+                // Si se autoriza, agregamos a la tabla local para simular el registro
+                const libroSeleccionado = librosGlobales.length > 0 ? librosGlobales[0].titulo : "Libro genérico";
+                const nuevaFecha = new Date().toISOString().split('T')[0];
+
+                prestamos.push({
+                    id: Date.now(),
+                    idEstudiante: idEstudiante,
+                    libroTitulo: libroSeleccionado,
+                    fecha: nuevaFecha
+                });
+                renderizarPrestamos();
+            } else {
+                // Si se deniega, mostramos el mensaje de error de Spring Boot
+                showToast(data.mensaje, 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            showToast('Error al conectar con el servidor de préstamos', 'error');
+        }
     }
 
     function renderizarPrestamos() {
@@ -378,20 +372,30 @@
         prestamos.forEach((prestamo, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
+                <td>Estudiante ID: ${prestamo.idEstudiante}</td>
                 <td style="font-weight: 500;">${prestamo.libroTitulo}</td>
-                <td>${prestamo.estudiante}</td>
                 <td>${prestamo.fecha}</td>
-                <td><button class="btn btn-danger btn-icon" onclick="devolverLibro(${index})" title="Devolver"><i class="fa-solid fa-arrow-rotate-left"></i></button></td>
+                <td><button class="btn btn-danger btn-icon" onclick="eliminarPrestamo(${index})"><i class="fa-solid fa-trash"></i></button></td>
             `;
             tbody.appendChild(tr);
         });
         actualizarDashboard();
     }
 
-    function devolverLibro(index) {
+    function eliminarPrestamo(index) {
         prestamos.splice(index, 1);
         renderizarPrestamos();
-        showToast('Libro devuelto correctamente', 'success');
+        showToast('Préstamo eliminado del registro', 'success');
+    }
+
+    // --- MODAL Y DASHBOARD ---
+    function abrirModalLibro() { document.getElementById('modalLibro').classList.add('active'); }
+    function cerrarModalLibro() {
+        document.getElementById('modalLibro').classList.remove('active');
+        document.getElementById('nuevoTitulo').value = '';
+        document.getElementById('nuevoAutor').value = '';
+        document.getElementById('nuevaCategoria').value = '';
+        document.getElementById('nuevoAnio').value = '';
     }
 
     function actualizarDashboard() {
