@@ -5,26 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>BiblioTech</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; color: #222; }
-        header { background: #1f4e79; color: #fff; padding: 16px 24px; }
-        header h1 { margin: 0; font-size: 26px; }
-        header p { margin: 4px 0 0; font-size: 14px; }
-        main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
-        section { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
-        h2 { margin-top: 0; font-size: 20px; color: #1f4e79; }
-        label { display: block; margin: 10px 0 4px; font-weight: bold; }
-        input[type=text], input[type=number], select { padding: 6px 8px; width: 260px; }
-        button { background: #1f4e79; color: #fff; border: 0; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 8px; transition: background 0.3s; }
-        button:hover { background: #15395a; }
-        button:disabled { background: #8fa8be; cursor: not-allowed; } /* Estado de carga */
-        table { border-collapse: collapse; width: 100%; margin-top: 12px; }
-        th, td { border: 1px solid #d0d7de; padding: 6px 8px; text-align: left; }
-        th { background: #e8eef4; }
-        .ok { color: #1a7f37; font-weight: bold; }
-        .error { color: #cf222e; font-weight: bold; }
-        .tarjeta { border-left: 4px solid #1f4e79; padding: 8px 12px; margin-top: 12px; background: #f6f8fa; }
-        .opciones label { display: inline; font-weight: normal; margin-right: 16px; }
-        fieldset { border: none; padding: 0; margin: 0; }
+        /* Variables de CSS para mantener los colores consistentes */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f1f5f9;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        /* Reset básico y tipografía */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Encabezado con degradado */
+        header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: #fff;
+            padding: 24px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+        header p { margin: 8px 0 0; font-size: 15px; color: #bfdbfe; }
+
+        /* Contenedor principal */
+        main { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+
+        /* Tarjetas de sección */
+        section {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        h2 { margin-top: 0; margin-bottom: 20px; font-size: 20px; font-weight: 600; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+
+        /* Formularios */
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; color: var(--text-main); }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            color: var(--text-main);
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Botones */
+        button {
+            background-color: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+        }
+        button:hover { background-color: var(--primary-hover); }
+        button:active { transform: scale(0.98); }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; }
+
+        /* Opciones de radio y checkbox */
+        .opciones { display: flex; gap: 16px; align-items: center; margin-top: 8px; }
+        .opciones label { display: flex; align-items: center; gap: 6px; font-weight: normal; margin: 0; cursor: pointer; }
+        input[type="radio"], input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
+
+        /* Tablas */
+        .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+        table { border-collapse: collapse; width: 100%; text-align: left; }
+        th, td { padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #f8fafc; font-weight: 600; font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        tr:last-child td { border-bottom: none; }
+        tbody tr { transition: background-color 0.2s ease; }
+        tbody tr:hover { background-color: #f1f5f9; }
+
+        /* Mensajes de estado */
+        .ok, .error { padding: 12px 16px; border-radius: 8px; font-weight: 500; margin-top: 16px; font-size: 14px; }
+        .ok { background-color: #ecfdf5; color: #065f46; border: 1px solid #10b981; }
+        .error { background-color: #fef2f2; color: #991b1b; border: 1px solid #ef4444; }
+
+        /* Tarjeta de resultado de búsqueda */
+        .tarjeta {
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            margin-top: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .tarjeta p { margin: 8px 0; font-size: 15px; }
+        .tarjeta strong { color: var(--text-muted); font-weight: 500; display: inline-block; width: 100px; }
+
+        /* Texto de carga */
+        #totalLibros, #cargando { font-size: 14px; color: var(--text-muted); margin-left: 12px; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -37,21 +145,28 @@
     <!-- 1. CATÁLOGO -->
     <section id="seccionCatalogo">
         <h2>Catálogo de libros</h2>
-        <button id="btnCargar" type="button">Cargar libros</button>
-        <span id="totalLibros" aria-live="polite"></span>
-        <table id="tablaLibros">
-            <thead>
-            <tr><th>ID</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Año</th></tr>
-            </thead>
-            <tbody id="cuerpoTabla"></tbody>
-        </table>
+        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+            <button id="btnCargar" type="button">Cargar libros</button>
+            <span id="totalLibros" aria-live="polite"></span>
+        </div>
+
+        <div class="table-container">
+            <table id="tablaLibros">
+                <thead>
+                <tr><th>ID</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Año</th></tr>
+                </thead>
+                <tbody id="cuerpoTabla"></tbody>
+            </table>
+        </div>
     </section>
 
     <!-- 2. BÚSQUEDA -->
     <section id="seccionBuscar">
         <h2>Buscar libro por ID</h2>
-        <label for="idLibro">ID del libro</label>
-        <input id="idLibro" name="idLibro" type="number" min="1" placeholder="Ejemplo: 2">
+        <div class="form-group">
+            <label for="idLibro">ID del libro</label>
+            <input id="idLibro" name="idLibro" type="number" min="1" placeholder="Ejemplo: 2">
+        </div>
         <button id="btnBuscar" type="button">Buscar</button>
         <div id="resultado" aria-live="polite"></div>
     </section>
@@ -59,27 +174,32 @@
     <!-- 3. PRÉSTAMO -->
     <section id="seccionPrestamo">
         <h2>Solicitar préstamo</h2>
-        <label for="nombreLector">Nombre del lector</label>
-        <input id="nombreLector" name="nombreLector" type="text" placeholder="Nombres y apellidos">
 
-        <label for="libroPrestamo">Libro</label>
-        <select id="libroPrestamo" name="libroPrestamo">
-            <option value="">Cargando libros...</option>
-        </select>
+        <div class="form-group">
+            <label for="nombreLector">Nombre del lector</label>
+            <input id="nombreLector" name="nombreLector" type="text" placeholder="Nombres y apellidos">
+        </div>
 
-        <fieldset>
+        <div class="form-group">
+            <label for="libroPrestamo">Libro</label>
+            <select id="libroPrestamo" name="libroPrestamo">
+                <option value="">Cargando libros...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
             <label>Tipo de préstamo</label>
             <div class="opciones">
-                <input id="tipoSala" type="radio" name="tipo" value="En sala" checked>
-                <label for="tipoSala">En sala</label>
-                <input id="tipoDomicilio" type="radio" name="tipo" value="A domicilio">
-                <label for="tipoDomicilio">A domicilio</label>
+                <label><input id="tipoSala" type="radio" name="tipo" value="En sala" checked> En sala</label>
+                <label><input id="tipoDomicilio" type="radio" name="tipo" value="A domicilio"> A domicilio</label>
             </div>
-        </fieldset>
+        </div>
 
-        <label>
-            <input id="aceptaReglamento" type="checkbox"> Acepto el reglamento de la biblioteca
-        </label>
+        <div class="form-group" style="margin-top: 16px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal;">
+                <input id="aceptaReglamento" type="checkbox"> Acepto el reglamento de la biblioteca
+            </label>
+        </div>
 
         <button id="btnSolicitar" type="button">Solicitar préstamo</button>
         <p id="mensajePrestamo" aria-live="polite"></p>
@@ -88,11 +208,9 @@
 
 <script>
     (function() {
-        // Configuración
         const RETARDO_MS = 600;
         const esperar = ms => new Promise(r => setTimeout(r, ms));
 
-        // Referencias al DOM
         const DOM = {
             cuerpoTabla: document.getElementById('cuerpoTabla'),
             totalLibros: document.getElementById('totalLibros'),
@@ -106,9 +224,6 @@
             mensajePrestamo: document.getElementById('mensajePrestamo')
         };
 
-        // ---------- Funciones Auxiliares ----------
-
-        // Helper para mostrar errores en la UI de forma segura
         function mostrarError(contenedor, mensaje, esElemento = false) {
             const p = document.createElement('p');
             p.className = 'error';
@@ -122,26 +237,24 @@
             }
         }
 
-        // ---------- 1. Catálogo ----------
         async function cargarLibros() {
             DOM.cuerpoTabla.innerHTML = '';
             DOM.totalLibros.textContent = 'Cargando...';
-            DOM.btnCargar.disabled = true; // Deshabilitar botón
+            DOM.totalLibros.className = '';
+            DOM.btnCargar.disabled = true;
 
             try {
                 await esperar(RETARDO_MS);
                 const respuesta = await fetch('/libros');
-                if (!respuesta.ok) throw new Error('Error al cargar los libros');
+                if (!respuesta.ok) throw new Error('Error al cargar');
 
                 const libros = await respuesta.json();
 
-                // Construcción segura del DOM (evita XSS)
-                libros.forEach((libro, i) => {
+                libros.forEach((libro) => {
                     const fila = document.createElement('tr');
-                    fila.id = 'fila-' + libro.id; // Usamos el ID real del libro
 
                     const tdId = document.createElement('td'); tdId.textContent = libro.id;
-                    const tdTitulo = document.createElement('td'); tdTitulo.textContent = libro.titulo; tdTitulo.className = 'col-titulo';
+                    const tdTitulo = document.createElement('td'); tdTitulo.textContent = libro.titulo; tdTitulo.style.fontWeight = '500';
                     const tdAutor = document.createElement('td'); tdAutor.textContent = libro.autor;
                     const tdCategoria = document.createElement('td'); tdCategoria.textContent = libro.categoria;
                     const tdAnio = document.createElement('td'); tdAnio.textContent = libro.anio;
@@ -152,14 +265,13 @@
 
                 DOM.totalLibros.textContent = libros.length + ' libros encontrados';
             } catch (error) {
-                mostrarError(DOM.totalLibros, 'No se pudieron cargar los libros. Intente de nuevo.');
+                mostrarError(DOM.totalLibros, 'No se pudieron cargar los libros.');
                 console.error(error);
             } finally {
-                DOM.btnCargar.disabled = false; // Volver a habilitar el botón
+                DOM.btnCargar.disabled = false;
             }
         }
 
-        // ---------- 2. Búsqueda ----------
         async function buscarLibro() {
             DOM.resultado.innerHTML = '';
             const id = DOM.idLibro.value.trim();
@@ -181,7 +293,6 @@
 
                 const libro = await respuesta.json();
 
-                // Construcción segura de la tarjeta
                 const tarjeta = document.createElement('div');
                 tarjeta.className = 'tarjeta';
                 tarjeta.innerHTML = `
@@ -191,7 +302,6 @@
                     <p><strong>Año:</strong> <span></span></p>
                 `;
 
-                // Insertamos el texto de forma segura
                 const spans = tarjeta.querySelectorAll('span');
                 spans[0].textContent = libro.titulo;
                 spans[1].textContent = libro.autor;
@@ -206,14 +316,13 @@
             }
         }
 
-        // ---------- 3. Préstamo ----------
         async function llenarSelectLibros() {
             try {
                 const respuesta = await fetch('/libros');
                 if (!respuesta.ok) throw new Error('Error al cargar libros');
 
                 const libros = await respuesta.json();
-                DOM.libroPrestamo.innerHTML = '<option value="">-- Seleccione --</option>';
+                DOM.libroPrestamo.innerHTML = '<option value="">-- Seleccione un libro --</option>';
 
                 libros.forEach(libro => {
                     const opcion = document.createElement('option');
@@ -243,12 +352,10 @@
             DOM.mensajePrestamo.textContent = `Préstamo registrado: ${libro} para ${nombre} (${tipo})`;
         }
 
-        // ---------- Event Listeners ----------
         DOM.btnCargar.addEventListener('click', cargarLibros);
         DOM.btnBuscar.addEventListener('click', buscarLibro);
         DOM.btnSolicitar.addEventListener('click', solicitarPrestamo);
 
-        // Inicialización
         llenarSelectLibros();
     })();
 </script>
