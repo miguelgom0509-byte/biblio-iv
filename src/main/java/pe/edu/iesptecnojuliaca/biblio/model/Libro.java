@@ -6,9 +6,10 @@ public class Libro {
     private String autor;
     private String categoria;
     private int anio;
-    private int stock; // <-- ESTO ES VITAL
+    private int stock; // El atributo que falta
 
-    public Libro() {}
+    public Libro() {
+    }
 
     public Libro(int id, String titulo, String autor, String categoria, int anio, int stock) {
         this.id = id;
@@ -19,7 +20,6 @@ public class Libro {
         this.stock = stock;
     }
 
-    // Getters y Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -35,6 +35,7 @@ public class Libro {
     public int getAnio() { return anio; }
     public void setAnio(int anio) { this.anio = anio; }
 
-    public int getStock() { return stock; } // <-- HTML lee esto
-    public void setStock(int stock) { this.stock = stock; } // <-- JSON PUT escribe esto
+    // ¡ESTO ES LO QUE HACE QUE POSTMAN MUESTRE EL STOCK!
+    public int getStock() { return stock; }
+    public void setStock(int stock) { this.stock = stock; }
 }
