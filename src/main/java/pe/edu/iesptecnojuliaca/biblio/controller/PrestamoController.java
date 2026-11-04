@@ -9,7 +9,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/prestamos")
-@CrossOrigin(origins = "*") // Permite que tu HTML haga peticiones a este controlador
+@CrossOrigin(origins = "*")
 public class PrestamoController {
 
     private final PrestamoService prestamoService;
@@ -18,24 +18,22 @@ public class PrestamoController {
         this.prestamoService = prestamoService;
     }
 
+    // Quitamos 'stock' y 'prestamosActivos' de aquí. El backend los calcula.
     @GetMapping("/evaluar")
     public ResponseEntity<Map<String, Object>> evaluarPrestamo(
-            @RequestParam Long idEstudiante,
-            @RequestParam int stock,
-            @RequestParam int prestamosActivos) {
+            @RequestParam int idEstudiante,
+            @RequestParam int idLibro) {
 
-        boolean autorizado = prestamoService.evaluarPrestamoPorId(idEstudiante, stock, prestamosActivos);
+        boolean autorizado = prestamoService.evaluarPrestamo(idEstudiante, idLibro);
 
-        // Creamos un JSON para responder de forma más profesional al Frontend
         Map<String, Object> respuesta = new HashMap<>();
         respuesta.put("autorizado", autorizado);
 
         if (autorizado) {
-            respuesta.put("mensaje", "✅ Préstamo AUTORIZADO");
+            respuesta.put("mensaje", "✅ Préstamo AUTORIZADO. Stock actualizado.");
             return ResponseEntity.ok(respuesta);
         } else {
-            respuesta.put("mensaje", "❌ Préstamo DENEGADO. Verifique el stock o sus préstamos activos.");
-            // Devolvemos 200 OK pero con el estado false, para que el JS sepa manejarlo
+            respuesta.put("mensaje", "❌ Préstamo DENEGADO. No hay stock disponible.");
             return ResponseEntity.ok(respuesta);
         }
     }
