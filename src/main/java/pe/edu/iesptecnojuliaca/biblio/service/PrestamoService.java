@@ -13,19 +13,16 @@ public class PrestamoService {
         this.libroRepository = libroRepository;
     }
 
-    // Ahora solo pedimos los IDs, el backend hace el resto
     public boolean evaluarPrestamo(int idEstudiante, int idLibro) {
         Libro libro = libroRepository.buscarPorId(idLibro);
 
-        // Regla 1: El libro debe existir
-        if (libro == null) return false;
+        // Regla 1: El libro debe existir y tener stock
+        if (libro == null || libro.getStock() <= 0) {
+            return false;
+        }
 
-        // Regla 2: Debe haber stock disponible
-        if (libro.getStock() <= 0) return false;
-
-        // (Aquí podrías agregar la validación de que el estudiante no tenga más de 3 préstamos)
-
-        // Si todo está OK, reducimos el stock y autorizamos
+        // Regla 2: (Opcional) Validar que el estudiante no tenga muchos préstamos.
+        // Por ahora, si hay stock, autorizamos y restamos 1.
         libro.setStock(libro.getStock() - 1);
         return true;
     }
