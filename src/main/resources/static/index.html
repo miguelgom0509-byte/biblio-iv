@@ -108,15 +108,25 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon blue"><i class="fa-solid fa-book"></i></div>
-                <div class="stat-info"><h3>Total Libros</h3><p id="stat-total-libros">0</p></div>
+                <div class="stat-info">
+                    <h3>Total Libros</h3>
+                    <p id="stat-total-libros">0</p>
+                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon green"><i class="fa-solid fa-users"></i></div>
-                <div class="stat-info"><h3>Estudiantes</h3><p>124</p></div>
+                <div class="stat-info">
+                    <h3>Estudiantes</h3>
+                    <!-- Ya no está el 124 fijo, ahora tiene un ID -->
+                    <p id="stat-estudiantes">0</p>
+                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon orange"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                <div class="stat-info"><h3>Préstamos Activos</h3><p id="stat-prestamos">0</p></div>
+                <div class="stat-info">
+                    <h3>Préstamos Activos</h3>
+                    <p id="stat-prestamos">0</p>
+                </div>
             </div>
         </div>
     </section>
@@ -146,11 +156,10 @@
         </div>
     </section>
 
-    <!-- 3. PRÉSTAMOS (CONECTADO AL BACKEND) -->
+    <!-- 3. PRÉSTAMOS -->
     <section id="prestamos" class="page-section">
         <div class="page-header"><h1 class="page-title">Gestión de Préstamos</h1></div>
 
-        <!-- Formulario para probar el endpoint /api/prestamos/evaluar -->
         <div class="card" style="margin-bottom: 24px; padding: 24px;">
             <h3 style="margin-bottom: 16px; font-size: 16px;">Evaluar Préstamo (Backend)</h3>
             <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
@@ -170,7 +179,6 @@
             </div>
         </div>
 
-        <!-- Tabla de Préstamos Locales -->
         <div class="card">
             <div class="card-header"><h3 style="font-size: 16px;">Registro de Préstamos (Local)</h3></div>
             <div class="table-container">
@@ -216,7 +224,7 @@
 
 <script>
     let librosGlobales = [];
-    let prestamos = []; // Préstamos locales (simulados para la tabla)
+    let prestamos = [];
 
     // --- NAVEGACIÓN Y UI ---
     function switchTab(tabId, element) {
@@ -240,8 +248,10 @@
     }
 
     // ==========================================
-    // CONEXIÓN CON SPRING BOOT (LIBROS)
+    // CONEXIÓN CON SPRING BOOT
     // ==========================================
+
+    // 1. Cargar Libros
     async function cargarLibrosBackend() {
         try {
             const respuesta = await fetch('/libros');
@@ -255,6 +265,24 @@
         }
     }
 
+    // 2. Cargar Estudiantes (¡NUEVA FUNCIÓN!)
+    async function cargarEstudiantesBackend() {
+        try {
+            const respuesta = await fetch('/estudiantes');
+            if (!respuesta.ok) throw new Error('Error al conectar');
+
+            const estudiantes = await respuesta.json();
+
+            // Actualiza la tarjeta con el número real de estudiantes (3)
+            document.getElementById('stat-estudiantes').textContent = estudiantes.length;
+
+        } catch (error) {
+            console.error("Error al cargar estudiantes:", error);
+            document.getElementById('stat-estudiantes').textContent = "-";
+        }
+    }
+
+    // 3. Guardar Libro
     async function guardarLibroBackend() {
         const titulo = document.getElementById('nuevoTitulo').value;
         const autor = document.getElementById('nuevoAutor').value;
@@ -283,6 +311,7 @@
         }
     }
 
+    // 4. Eliminar Libro
     async function eliminarLibroBackend(id) {
         if(confirm('¿Estás seguro de eliminar este libro?')) {
             try {
@@ -323,11 +352,7 @@
         renderizarLibros(filtrados);
     }
 
-    // ==========================================
-    // CONEXIÓN CON SPRING BOOT (PRÉSTAMOS)
-    // ==========================================
-
-    // Esta función consume tu API: GET /api/prestamos/evaluar
+    // --- EVALUACIÓN DE PRÉSTAMOS ---
     async function evaluarPrestamoBackend() {
         const idEstudiante = document.getElementById('idEstudiante').value;
         const stock = document.getElementById('stockLibro').value;
@@ -336,16 +361,13 @@
         if(!idEstudiante) return showToast('Ingrese un ID de estudiante válido', 'error');
 
         try {
-            // Construimos la URL con los Query Params
             const url = `/api/prestamos/evaluar?idEstudiante=${idEstudiante}&stock=${stock}&prestamosActivos=${prestamosActivos}`;
-
             const respuesta = await fetch(url);
-            const data = await respuesta.json(); // Esperamos el JSON { autorizado: true/false, mensaje: "..." }
+            const data = await respuesta.json();
 
             if (data.autorizado) {
                 showToast(data.mensaje, 'success');
 
-                // Si se autoriza, agregamos a la tabla local para simular el registro
                 const libroSeleccionado = librosGlobales.length > 0 ? librosGlobales[0].titulo : "Libro genérico";
                 const nuevaFecha = new Date().toISOString().split('T')[0];
 
@@ -357,7 +379,6 @@
                 });
                 renderizarPrestamos();
             } else {
-                // Si se deniega, mostramos el mensaje de error de Spring Boot
                 showToast(data.mensaje, 'error');
             }
         } catch (error) {
@@ -404,8 +425,10 @@
     }
 
     // --- INICIALIZACIÓN ---
+    // Cuando la página carga, consulta los libros y los estudiantes
     document.addEventListener('DOMContentLoaded', () => {
         cargarLibrosBackend();
+        cargarEstudiantesBackend(); // <-- Llamada a la nueva función
     });
 </script>
 </body>
