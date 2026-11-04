@@ -6,18 +6,19 @@ public class Libro {
     private String autor;
     private String categoria;
     private int anio;
+    private int stock; // NUEVO ATRIBUTO
 
-    // Constructor vacío (Obligatorio para Spring/Jackson)
     public Libro() {
     }
 
-    // Constructor con parámetros
-    public Libro(int id, String titulo, String autor, String categoria, int anio) {
+    // Constructor actualizado con stock
+    public Libro(int id, String titulo, String autor, String categoria, int anio, int stock) {
         this.id = id;
         this.titulo = titulo;
         this.autor = autor;
         this.categoria = categoria;
         this.anio = anio;
+        this.stock = stock;
     }
 
     // Getters y Setters
@@ -35,4 +36,7 @@ public class Libro {
 
     public int getAnio() { return anio; }
     public void setAnio(int anio) { this.anio = anio; }
+
+    public int getStock() { return stock; }
+    public void setStock(int stock) { this.stock = stock; }
 }
