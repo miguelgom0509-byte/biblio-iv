@@ -3,361 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>BiblioTech</title>
+    <title>BiblioTech | Sistema de Gestión</title>
+    <!-- FontAwesome para Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Variables de CSS para mantener los colores consistentes */
         :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-color: #f1f5f9;
+            --primary: #4f46e5; /* Indigo moderno */
+            --primary-hover: #4338ca;
+            --bg-body: #f3f4f6;
+            --bg-sidebar: #111827;
             --surface: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --radius: 12px;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-            --danger: #ef4444;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
             --success: #10b981;
+            --danger: #ef4444;
+            --radius: 12px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
-        /* Reset básico y tipografía */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Encabezado con degradado */
-        header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-            color: #fff;
-            padding: 24px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-        header p { margin: 8px 0 0; font-size: 15px; color: #bfdbfe; }
+        /* --- SIDEBAR --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; transition: all 0.3s; }
+        .sidebar-header { padding: 24px; display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header i { color: #818cf8; }
+        .nav-menu { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .nav-item { padding: 12px 16px; border-radius: 8px; color: #9ca3af; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; text-decoration: none; font-weight: 500;}
+        .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active { background-color: var(--primary); }
 
-        /* Contenedor principal */
-        main { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+        /* --- MAIN CONTENT --- */
+        .main-content { flex: 1; overflow-y: auto; padding: 32px; position: relative; }
+        .page-section { display: none; animation: fadeIn 0.3s ease; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Tarjetas de sección */
-        section {
-            background: var(--surface);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-        }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 24px; font-weight: 700; color: var(--text-main); }
 
-        h2 { margin-top: 0; margin-bottom: 20px; font-size: 20px; font-weight: 600; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+        /* --- DASHBOARD STATS --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px; }
+        .stat-card { background: var(--surface); padding: 24px; border-radius: var(--radius); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 20px; border: 1px solid var(--border); }
+        .stat-icon { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .stat-icon.blue { background: #e0e7ff; color: #4f46e5; }
+        .stat-icon.green { background: #d1fae5; color: #059669; }
+        .stat-icon.orange { background: #ffedd5; color: #ea580c; }
+        .stat-info h3 { font-size: 14px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+        .stat-info p { font-size: 24px; font-weight: 700; color: var(--text-main); }
 
-        /* Formularios */
+        /* --- CARDS & TABLES --- */
+        .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
+        .card-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #f9fafb; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 16px 24px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { background: #f9fafb; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+        tbody tr:hover { background: #f9fafb; }
+        tbody tr:last-child td { border-bottom: none; }
+
+        /* --- FORMS & BUTTONS --- */
+        .input-group { display: flex; gap: 12px; align-items: center; }
+        input[type="text"], input[type="number"], select { padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: 0.2s; font-size: 14px; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
+
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-danger { background: #fee2e2; color: var(--danger); }
+        .btn-danger:hover { background: #fecaca; }
+        .btn-success { background: #d1fae5; color: var(--success); }
+        .btn-success:hover { background: #a7f3d0; }
+        .btn-icon { padding: 8px; border-radius: 6px; }
+
+        /* --- MODAL --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--surface); width: 100%; max-width: 500px; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 24px; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
         .form-group { margin-bottom: 16px; }
-        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; color: var(--text-main); }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
+        .form-group input { width: 100%; }
 
-        input[type="text"], input[type="number"], select {
-            width: 100%;
-            max-width: 400px;
-            padding: 10px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 15px;
-            color: var(--text-main);
-            background-color: #f8fafc;
-            transition: all 0.2s ease;
-        }
-        input[type="text"]:focus, input[type="number"]:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-        }
-
-        /* Botones */
-        button {
-            background-color: var(--primary);
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 8px;
-        }
-        button:hover { background-color: var(--primary-hover); }
-        button:active { transform: scale(0.98); }
-        button:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; }
-
-        /* Opciones de radio y checkbox */
-        .opciones { display: flex; gap: 16px; align-items: center; margin-top: 8px; }
-        .opciones label { display: flex; align-items: center; gap: 6px; font-weight: normal; margin: 0; cursor: pointer; }
-        input[type="radio"], input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
-
-        /* Tablas */
-        .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
-        table { border-collapse: collapse; width: 100%; text-align: left; }
-        th, td { padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
-        th { background-color: #f8fafc; font-weight: 600; font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        tr:last-child td { border-bottom: none; }
-        tbody tr { transition: background-color 0.2s ease; }
-        tbody tr:hover { background-color: #f1f5f9; }
-
-        /* Mensajes de estado */
-        .ok, .error { padding: 12px 16px; border-radius: 8px; font-weight: 500; margin-top: 16px; font-size: 14px; }
-        .ok { background-color: #ecfdf5; color: #065f46; border: 1px solid #10b981; }
-        .error { background-color: #fef2f2; color: #991b1b; border: 1px solid #ef4444; }
-
-        /* Tarjeta de resultado de búsqueda */
-        .tarjeta {
-            border: 1px solid var(--border-color);
-            border-left: 4px solid var(--primary);
-            padding: 16px;
-            margin-top: 16px;
-            background: #f8fafc;
-            border-radius: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        .tarjeta p { margin: 8px 0; font-size: 15px; }
-        .tarjeta strong { color: var(--text-muted); font-weight: 500; display: inline-block; width: 100px; }
-
-        /* Texto de carga */
-        #totalLibros, #cargando { font-size: 14px; color: var(--text-muted); margin-left: 12px; font-weight: 500; }
+        /* --- TOASTS --- */
+        #toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
+        .toast { padding: 16px 24px; border-radius: 8px; color: white; font-weight: 500; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease forwards; }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateX(100%); } }
     </style>
 </head>
 <body>
-<header>
-    <h1 id="titulo">BiblioTech</h1>
-    <p>Sistema de biblioteca &middot; IESTP Manuel N&uacute;&ntilde;ez Butr&oacute;n</p>
-</header>
 
-<main>
-    <!-- 1. CATÁLOGO -->
-    <section id="seccionCatalogo">
-        <h2>Catálogo de libros</h2>
-        <div style="display: flex; align-items: center; margin-bottom: 16px;">
-            <button id="btnCargar" type="button">Cargar libros</button>
-            <span id="totalLibros" aria-live="polite"></span>
+<!-- BARRA LATERAL -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <i class="fa-solid fa-book-open"></i> BiblioTech
+    </div>
+    <nav class="nav-menu">
+        <a href="#" class="nav-item active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="#" class="nav-item" onclick="switchTab('catalogo', this)"><i class="fa-solid fa-book"></i> Catálogo</a>
+        <a href="#" class="nav-item" onclick="switchTab('prestamos', this)"><i class="fa-solid fa-hand-holding-hand"></i> Préstamos</a>
+    </nav>
+</aside>
+
+<!-- CONTENIDO PRINCIPAL -->
+<main class="main-content">
+
+    <!-- 1. DASHBOARD -->
+    <section id="dashboard" class="page-section active">
+        <div class="page-header">
+            <h1 class="page-title">Resumen General</h1>
         </div>
-
-        <div class="table-container">
-            <table id="tablaLibros">
-                <thead>
-                <tr><th>ID</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Año</th></tr>
-                </thead>
-                <tbody id="cuerpoTabla"></tbody>
-            </table>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fa-solid fa-book"></i></div>
+                <div class="stat-info"><h3>Total Libros</h3><p id="stat-total-libros">0</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fa-solid fa-users"></i></div>
+                <div class="stat-info"><h3>Estudiantes</h3><p id="stat-estudiantes">124</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <div class="stat-info"><h3>Préstamos Activos</h3><p id="stat-prestamos">0</p></div>
+            </div>
         </div>
     </section>
 
-    <!-- 2. BÚSQUEDA -->
-    <section id="seccionBuscar">
-        <h2>Buscar libro por ID</h2>
-        <div class="form-group">
-            <label for="idLibro">ID del libro</label>
-            <input id="idLibro" name="idLibro" type="number" min="1" placeholder="Ejemplo: 2">
+    <!-- 2. CATÁLOGO -->
+    <section id="catalogo" class="page-section">
+        <div class="page-header">
+            <h1 class="page-title">Catálogo de Libros</h1>
+            <button class="btn btn-primary" onclick="abrirModalLibro()"><i class="fa-solid fa-plus"></i> Agregar Libro</button>
         </div>
-        <button id="btnBuscar" type="button">Buscar</button>
-        <div id="resultado" aria-live="polite"></div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="input-group">
+                    <i class="fa-solid fa-search" style="color:var(--text-muted)"></i>
+                    <input type="text" id="buscadorLibros" placeholder="Buscar por título o autor..." onkeyup="filtrarLibros()" style="width: 300px;">
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                    <tr><th>ID</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Año</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody id="tablaLibrosBody">
+                    <!-- Se llena con JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </section>
 
-    <!-- 3. PRÉSTAMO -->
-    <section id="seccionPrestamo">
-        <h2>Solicitar préstamo</h2>
-
-        <div class="form-group">
-            <label for="nombreLector">Nombre del lector</label>
-            <input id="nombreLector" name="nombreLector" type="text" placeholder="Nombres y apellidos">
+    <!-- 3. PRÉSTAMOS -->
+    <section id="prestamos" class="page-section">
+        <div class="page-header">
+            <h1 class="page-title">Gestión de Préstamos</h1>
         </div>
 
-        <div class="form-group">
-            <label for="libroPrestamo">Libro</label>
-            <select id="libroPrestamo" name="libroPrestamo">
-                <option value="">Cargando libros...</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Tipo de préstamo</label>
-            <div class="opciones">
-                <label><input id="tipoSala" type="radio" name="tipo" value="En sala" checked> En sala</label>
-                <label><input id="tipoDomicilio" type="radio" name="tipo" value="A domicilio"> A domicilio</label>
+        <div class="card" style="margin-bottom: 24px; padding: 24px;">
+            <h3 style="margin-bottom: 16px; font-size: 16px;">Registrar Nuevo Préstamo</h3>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+                <div class="form-group" style="margin:0; flex: 1; min-width: 200px;">
+                    <label>Nombre del Estudiante</label>
+                    <input type="text" id="nombreLector" placeholder="Ej. Juan Pérez" style="width: 100%;">
+                </div>
+                <div class="form-group" style="margin:0; flex: 1; min-width: 200px;">
+                    <label>Libro a Prestar</label>
+                    <select id="libroPrestamo" style="width: 100%;">
+                        <option value="">Seleccione un libro...</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="registrarPrestamo()" style="height: 42px;"><i class="fa-solid fa-save"></i> Registrar</button>
             </div>
         </div>
 
-        <div class="form-group" style="margin-top: 16px;">
-            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal;">
-                <input id="aceptaReglamento" type="checkbox"> Acepto el reglamento de la biblioteca
-            </label>
+        <div class="card">
+            <div class="card-header"><h3 style="font-size: 16px;">Préstamos Activos</h3></div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                    <tr><th>Libro</th><th>Estudiante</th><th>Fecha Préstamo</th><th>Estado</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody id="tablaPrestamosBody">
+                    <!-- Se llena con JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
-
-        <button id="btnSolicitar" type="button">Solicitar préstamo</button>
-        <p id="mensajePrestamo" aria-live="polite"></p>
     </section>
 </main>
 
-<script>
-    (function() {
-        const RETARDO_MS = 600;
-        const esperar = ms => new Promise(r => setTimeout(r, ms));
+<!-- MODAL AGREGAR LIBRO -->
+<div class="modal-overlay" id="modalLibro">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Agregar Nuevo Libro</h2>
+            <button class="close-btn" onclick="cerrarModalLibro()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="form-group">
+            <label>Título del Libro</label>
+            <input type="text" id="nuevoTitulo" placeholder="Ej. Cien Años de Soledad">
+        </div>
+        <div class="form-group">
+            <label>Autor</label>
+            <input type="text" id="nuevoAutor" placeholder="Ej. Gabriel García Márquez">
+        </div>
+        <div class="form-group">
+            <label>Categoría</label>
+            <input type="text" id="nuevaCategoria" placeholder="Ej. Novela">
+        </div>
+        <div class="form-group">
+            <label>Año</label>
+            <input type="number" id="nuevoAnio" placeholder="Ej. 1967">
+        </div>
+        <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="guardarLibro()">Guardar Libro</button>
+    </div>
+</div>
 
-        const DOM = {
-            cuerpoTabla: document.getElementById('cuerpoTabla'),
-            totalLibros: document.getElementById('totalLibros'),
-            btnCargar: document.getElementById('btnCargar'),
-            idLibro: document.getElementById('idLibro'),
-            btnBuscar: document.getElementById('btnBuscar'),
-            resultado: document.getElementById('resultado'),
-            nombreLector: document.getElementById('nombreLector'),
-            libroPrestamo: document.getElementById('libroPrestamo'),
-            btnSolicitar: document.getElementById('btnSolicitar'),
-            mensajePrestamo: document.getElementById('mensajePrestamo')
+<!-- CONTENEDOR DE NOTIFICACIONES TOAST -->
+<div id="toast-container"></div>
+
+<script>
+    // --- ESTADO GLOBAL (Simulando Base de Datos) ---
+    let libros = [
+        { id: 1, titulo: "El Quijote", autor: "Miguel de Cervantes", categoria: "Clásico", anio: 1605 },
+        { id: 2, titulo: "Cien Años de Soledad", autor: "Gabriel García Márquez", categoria: "Realismo Mágico", anio: 1967 },
+        { id: 3, titulo: "Clean Code", autor: "Robert C. Martin", categoria: "Programación", anio: 2008 }
+    ];
+
+    let prestamos = [
+        { id: 1, libroTitulo: "El Quijote", estudiante: "Ana Gómez", fecha: "2023-10-25", estado: "Activo" }
+    ];
+
+    // --- NAVEGACIÓN ---
+    function switchTab(tabId, element) {
+        document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        element.classList.add('active');
+
+        if(tabId === 'dashboard') actualizarDashboard();
+    }
+
+    // --- NOTIFICACIONES (TOASTS) ---
+    function showToast(mensaje, tipo = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${tipo}`;
+        toast.innerHTML = `<i class="fa-solid ${tipo === 'success' ? 'fa-check-circle' : 'fa-circle-exclamation'}"></i> ${mensaje}`;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // --- LÓGICA DE LIBROS (CATÁLOGO) ---
+    function renderizarLibros(librosAMostrar = libros) {
+        const tbody = document.getElementById('tablaLibrosBody');
+        tbody.innerHTML = '';
+
+        librosAMostrar.forEach(libro => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${libro.id}</td>
+                <td style="font-weight: 500;">${libro.titulo}</td>
+                <td>${libro.autor}</td>
+                <td>${libro.categoria}</td>
+                <td>${libro.anio}</td>
+                <td>
+                    <button class="btn btn-danger btn-icon" onclick="eliminarLibro(${libro.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('stat-total-libros').textContent = libros.length;
+        actualizarSelectLibros();
+    }
+
+    function filtrarLibros() {
+        const texto = document.getElementById('buscadorLibros').value.toLowerCase();
+        const filtrados = libros.filter(l =>
+            l.titulo.toLowerCase().includes(texto) ||
+            l.autor.toLowerCase().includes(texto)
+        );
+        renderizarLibros(filtrados);
+    }
+
+    function eliminarLibro(id) {
+        if(confirm('¿Estás seguro de eliminar este libro?')) {
+            libros = libros.filter(l => l.id !== id);
+            renderizarLibros();
+            showToast('Libro eliminado correctamente', 'success');
+        }
+    }
+
+    // --- MODAL AGREGAR LIBRO ---
+    function abrirModalLibro() { document.getElementById('modalLibro').classList.add('active'); }
+    function cerrarModalLibro() {
+        document.getElementById('modalLibro').classList.remove('active');
+        document.getElementById('nuevoTitulo').value = '';
+        document.getElementById('nuevoAutor').value = '';
+        document.getElementById('nuevaCategoria').value = '';
+        document.getElementById('nuevoAnio').value = '';
+    }
+
+    function guardarLibro() {
+        const titulo = document.getElementById('nuevoTitulo').value;
+        const autor = document.getElementById('nuevoAutor').value;
+        const categoria = document.getElementById('nuevaCategoria').value;
+        const anio = document.getElementById('nuevoAnio').value;
+
+        if(!titulo || !autor) return showToast('Título y autor son obligatorios', 'error');
+
+        const nuevoLibro = {
+            id: libros.length > 0 ? Math.max(...libros.map(l => l.id)) + 1 : 1,
+            titulo, autor, categoria, anio
         };
 
-        function mostrarError(contenedor, mensaje, esElemento = false) {
-            const p = document.createElement('p');
-            p.className = 'error';
-            p.textContent = mensaje;
-            if (esElemento) {
-                contenedor.innerHTML = '';
-                contenedor.appendChild(p);
-            } else {
-                contenedor.textContent = mensaje;
-                contenedor.className = 'error';
-            }
-        }
+        libros.push(nuevoLibro);
+        cerrarModalLibro();
+        renderizarLibros();
+        showToast('Libro agregado exitosamente', 'success');
+    }
 
-        async function cargarLibros() {
-            DOM.cuerpoTabla.innerHTML = '';
-            DOM.totalLibros.textContent = 'Cargando...';
-            DOM.totalLibros.className = '';
-            DOM.btnCargar.disabled = true;
+    // --- LÓGICA DE PRÉSTAMOS ---
+    function actualizarSelectLibros() {
+        const select = document.getElementById('libroPrestamo');
+        select.innerHTML = '<option value="">Seleccione un libro...</option>';
+        libros.forEach(libro => {
+            const option = document.createElement('option');
+            option.value = libro.id;
+            option.textContent = libro.titulo;
+            select.appendChild(option);
+        });
+    }
 
-            try {
-                await esperar(RETARDO_MS);
-                const respuesta = await fetch('/libros');
-                if (!respuesta.ok) throw new Error('Error al cargar');
+    function registrarPrestamo() {
+        const nombre = document.getElementById('nombreLector').value;
+        const libroId = document.getElementById('libroPrestamo').value;
 
-                const libros = await respuesta.json();
+        if(!nombre || !libroId) return showToast('Complete todos los campos', 'error');
 
-                libros.forEach((libro) => {
-                    const fila = document.createElement('tr');
+        const libroSeleccionado = libros.find(l => l.id == libroId);
+        const nuevaFecha = new Date().toISOString().split('T')[0];
 
-                    const tdId = document.createElement('td'); tdId.textContent = libro.id;
-                    const tdTitulo = document.createElement('td'); tdTitulo.textContent = libro.titulo; tdTitulo.style.fontWeight = '500';
-                    const tdAutor = document.createElement('td'); tdAutor.textContent = libro.autor;
-                    const tdCategoria = document.createElement('td'); tdCategoria.textContent = libro.categoria;
-                    const tdAnio = document.createElement('td'); tdAnio.textContent = libro.anio;
+        prestamos.push({
+            id: prestamos.length + 1,
+            libroTitulo: libroSeleccionado.titulo,
+            estudiante: nombre,
+            fecha: nuevaFecha,
+            estado: "Activo"
+        });
 
-                    fila.append(tdId, tdTitulo, tdAutor, tdCategoria, tdAnio);
-                    DOM.cuerpoTabla.appendChild(fila);
-                });
+        document.getElementById('nombreLector').value = '';
+        document.getElementById('libroPrestamo').value = '';
 
-                DOM.totalLibros.textContent = libros.length + ' libros encontrados';
-            } catch (error) {
-                mostrarError(DOM.totalLibros, 'No se pudieron cargar los libros.');
-                console.error(error);
-            } finally {
-                DOM.btnCargar.disabled = false;
-            }
-        }
+        renderizarPrestamos();
+        showToast(`Préstamo registrado: ${libroSeleccionado.titulo}`, 'success');
+    }
 
-        async function buscarLibro() {
-            DOM.resultado.innerHTML = '';
-            const id = DOM.idLibro.value.trim();
+    function renderizarPrestamos() {
+        const tbody = document.getElementById('tablaPrestamosBody');
+        tbody.innerHTML = '';
 
-            if (id === '') {
-                mostrarError(DOM.resultado, 'Por favor, ingrese un ID.', true);
-                return;
-            }
+        prestamos.forEach((prestamo, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight: 500;">${prestamo.libroTitulo}</td>
+                <td>${prestamo.estudiante}</td>
+                <td>${prestamo.fecha}</td>
+                <td><span style="background:#d1fae5; color:#059669; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${prestamo.estado}</span></td>
+                <td>
+                    <button class="btn btn-success btn-icon" onclick="devolverLibro(${index})" title="Devolver"><i class="fa-solid fa-arrow-rotate-left"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
 
-            DOM.resultado.innerHTML = '<p id="cargando">Buscando...</p>';
-            DOM.btnBuscar.disabled = true;
+        document.getElementById('stat-prestamos').textContent = prestamos.length;
+    }
 
-            try {
-                await esperar(RETARDO_MS);
-                const respuesta = await fetch('/libros/' + encodeURIComponent(id));
+    function devolverLibro(index) {
+        prestamos.splice(index, 1);
+        renderizarPrestamos();
+        showToast('Libro devuelto correctamente', 'success');
+    }
 
-                if (respuesta.status === 404) throw new Error('Libro no encontrado');
-                if (!respuesta.ok) throw new Error('Error ' + respuesta.status);
+    // --- INICIALIZACIÓN ---
+    function actualizarDashboard() {
+        document.getElementById('stat-total-libros').textContent = libros.length;
+        document.getElementById('stat-prestamos').textContent = prestamos.length;
+    }
 
-                const libro = await respuesta.json();
-
-                const tarjeta = document.createElement('div');
-                tarjeta.className = 'tarjeta';
-                tarjeta.innerHTML = `
-                    <p><strong>Título:</strong> <span></span></p>
-                    <p><strong>Autor:</strong> <span></span></p>
-                    <p><strong>Categoría:</strong> <span></span></p>
-                    <p><strong>Año:</strong> <span></span></p>
-                `;
-
-                const spans = tarjeta.querySelectorAll('span');
-                spans[0].textContent = libro.titulo;
-                spans[1].textContent = libro.autor;
-                spans[2].textContent = libro.categoria;
-                spans[3].textContent = libro.anio;
-
-                DOM.resultado.appendChild(tarjeta);
-            } catch (error) {
-                mostrarError(DOM.resultado, error.message, true);
-            } finally {
-                DOM.btnBuscar.disabled = false;
-            }
-        }
-
-        async function llenarSelectLibros() {
-            try {
-                const respuesta = await fetch('/libros');
-                if (!respuesta.ok) throw new Error('Error al cargar libros');
-
-                const libros = await respuesta.json();
-                DOM.libroPrestamo.innerHTML = '<option value="">-- Seleccione un libro --</option>';
-
-                libros.forEach(libro => {
-                    const opcion = document.createElement('option');
-                    opcion.value = libro.titulo;
-                    opcion.textContent = libro.titulo;
-                    DOM.libroPrestamo.appendChild(opcion);
-                });
-            } catch (error) {
-                DOM.libroPrestamo.innerHTML = '<option value="">Error al cargar libros</option>';
-                console.error(error);
-            }
-        }
-
-        function solicitarPrestamo() {
-            const nombre = DOM.nombreLector.value.trim();
-            const libro = DOM.libroPrestamo.value;
-            const tipo = document.querySelector('input[name="tipo"]:checked').value;
-            const acepta = document.getElementById('aceptaReglamento').checked;
-
-            DOM.mensajePrestamo.className = 'error';
-
-            if (nombre === '') { DOM.mensajePrestamo.textContent = 'El nombre es obligatorio'; return; }
-            if (libro === '') { DOM.mensajePrestamo.textContent = 'Seleccione un libro'; return; }
-            if (!acepta) { DOM.mensajePrestamo.textContent = 'Debe aceptar el reglamento'; return; }
-
-            DOM.mensajePrestamo.className = 'ok';
-            DOM.mensajePrestamo.textContent = `Préstamo registrado: ${libro} para ${nombre} (${tipo})`;
-        }
-
-        DOM.btnCargar.addEventListener('click', cargarLibros);
-        DOM.btnBuscar.addEventListener('click', buscarLibro);
-        DOM.btnSolicitar.addEventListener('click', solicitarPrestamo);
-
-        llenarSelectLibros();
-    })();
+    document.addEventListener('DOMContentLoaded', () => {
+        renderizarLibros();
+        renderizarPrestamos();
+        actualizarDashboard();
+    });
 </script>
 </body>
 </html>
