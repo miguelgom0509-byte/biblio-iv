@@ -14,7 +14,9 @@
         h2 { margin-top: 0; font-size: 20px; color: #1f4e79; }
         label { display: block; margin: 10px 0 4px; font-weight: bold; }
         input[type=text], input[type=number], select { padding: 6px 8px; width: 260px; }
-        button { background: #1f4e79; color: #fff; border: 0; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 8px; }
+        button { background: #1f4e79; color: #fff; border: 0; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 8px; transition: background 0.3s; }
+        button:hover { background: #15395a; }
+        button:disabled { background: #8fa8be; cursor: not-allowed; } /* Estado de carga */
         table { border-collapse: collapse; width: 100%; margin-top: 12px; }
         th, td { border: 1px solid #d0d7de; padding: 6px 8px; text-align: left; }
         th { background: #e8eef4; }
@@ -22,6 +24,7 @@
         .error { color: #cf222e; font-weight: bold; }
         .tarjeta { border-left: 4px solid #1f4e79; padding: 8px 12px; margin-top: 12px; background: #f6f8fa; }
         .opciones label { display: inline; font-weight: normal; margin-right: 16px; }
+        fieldset { border: none; padding: 0; margin: 0; }
     </style>
 </head>
 <body>
@@ -31,11 +34,11 @@
 </header>
 
 <main>
-    <!-- 1. CATÁLOGO: usa GET /libros -->
+    <!-- 1. CATÁLOGO -->
     <section id="seccionCatalogo">
         <h2>Catálogo de libros</h2>
         <button id="btnCargar" type="button">Cargar libros</button>
-        <span id="totalLibros"></span>
+        <span id="totalLibros" aria-live="polite"></span>
         <table id="tablaLibros">
             <thead>
             <tr><th>ID</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Año</th></tr>
@@ -44,16 +47,16 @@
         </table>
     </section>
 
-    <!-- 2. BÚSQUEDA: usa GET /libros/{id} -->
+    <!-- 2. BÚSQUEDA -->
     <section id="seccionBuscar">
         <h2>Buscar libro por ID</h2>
         <label for="idLibro">ID del libro</label>
         <input id="idLibro" name="idLibro" type="number" min="1" placeholder="Ejemplo: 2">
         <button id="btnBuscar" type="button">Buscar</button>
-        <div id="resultado"></div>
+        <div id="resultado" aria-live="polite"></div>
     </section>
 
-    <!-- 3. PRÉSTAMO: formulario simulado (no se guarda en el servidor) -->
+    <!-- 3. PRÉSTAMO -->
     <section id="seccionPrestamo">
         <h2>Solicitar préstamo</h2>
         <label for="nombreLector">Nombre del lector</label>
@@ -61,117 +64,193 @@
 
         <label for="libroPrestamo">Libro</label>
         <select id="libroPrestamo" name="libroPrestamo">
-            <option value="">-- Seleccione --</option>
+            <option value="">Cargando libros...</option>
         </select>
 
-        <label>Tipo de préstamo</label>
-        <div class="opciones">
-            <input id="tipoSala" type="radio" name="tipo" value="En sala" checked>
-            <label for="tipoSala">En sala</label>
-            <input id="tipoDomicilio" type="radio" name="tipo" value="A domicilio">
-            <label for="tipoDomicilio">A domicilio</label>
-        </div>
+        <fieldset>
+            <label>Tipo de préstamo</label>
+            <div class="opciones">
+                <input id="tipoSala" type="radio" name="tipo" value="En sala" checked>
+                <label for="tipoSala">En sala</label>
+                <input id="tipoDomicilio" type="radio" name="tipo" value="A domicilio">
+                <label for="tipoDomicilio">A domicilio</label>
+            </div>
+        </fieldset>
 
         <label>
             <input id="aceptaReglamento" type="checkbox"> Acepto el reglamento de la biblioteca
         </label>
 
         <button id="btnSolicitar" type="button">Solicitar préstamo</button>
-        <p id="mensajePrestamo"></p>
+        <p id="mensajePrestamo" aria-live="polite"></p>
     </section>
 </main>
 
 <script>
-    // Pequeña espera para simular una red lenta (se usa al explicar las esperas)
-    const RETARDO_MS = 600;
-    const esperar = ms => new Promise(r => setTimeout(r, ms));
+    (function() {
+        // Configuración
+        const RETARDO_MS = 600;
+        const esperar = ms => new Promise(r => setTimeout(r, ms));
 
-    // ---------- 1. Catálogo ----------
-    async function cargarLibros() {
-        const cuerpo = document.getElementById('cuerpoTabla');
-        const total = document.getElementById('totalLibros');
-        cuerpo.innerHTML = '';
-        total.textContent = 'Cargando...';
-        await esperar(RETARDO_MS);
-        const respuesta = await fetch('/libros');
-        const libros = await respuesta.json();
-        libros.forEach((libro, i) => {
-            const fila = document.createElement('tr');
-            fila.id = 'fila-' + (i + 1);
-            fila.innerHTML =
-                '<td>' + (i + 1) + '</td>' +
-                '<td class="col-titulo">' + libro.titulo + '</td>' +
-                '<td>' + libro.autor + '</td>' +
-                '<td>' + libro.categoria + '</td>' +
-                '<td>' + libro.anio + '</td>';
-            cuerpo.appendChild(fila);
-        });
-        total.textContent = libros.length + ' libros';
-    }
+        // Referencias al DOM
+        const DOM = {
+            cuerpoTabla: document.getElementById('cuerpoTabla'),
+            totalLibros: document.getElementById('totalLibros'),
+            btnCargar: document.getElementById('btnCargar'),
+            idLibro: document.getElementById('idLibro'),
+            btnBuscar: document.getElementById('btnBuscar'),
+            resultado: document.getElementById('resultado'),
+            nombreLector: document.getElementById('nombreLector'),
+            libroPrestamo: document.getElementById('libroPrestamo'),
+            btnSolicitar: document.getElementById('btnSolicitar'),
+            mensajePrestamo: document.getElementById('mensajePrestamo')
+        };
 
-    // ---------- 2. Búsqueda ----------
-    async function buscarLibro() {
-        const resultado = document.getElementById('resultado');
-        const id = document.getElementById('idLibro').value.trim();
-        resultado.innerHTML = '';
-        if (id === '') {
-            resultado.innerHTML = '<p id="mensajeBusqueda" class="error">Ingrese un ID</p>';
-            return;
+        // ---------- Funciones Auxiliares ----------
+
+        // Helper para mostrar errores en la UI de forma segura
+        function mostrarError(contenedor, mensaje, esElemento = false) {
+            const p = document.createElement('p');
+            p.className = 'error';
+            p.textContent = mensaje;
+            if (esElemento) {
+                contenedor.innerHTML = '';
+                contenedor.appendChild(p);
+            } else {
+                contenedor.textContent = mensaje;
+                contenedor.className = 'error';
+            }
         }
-        resultado.innerHTML = '<p id="cargando">Buscando...</p>';
-        await esperar(RETARDO_MS);
-        const respuesta = await fetch('/libros/' + encodeURIComponent(id));
-        if (respuesta.status === 404) {
-            resultado.innerHTML = '<p id="mensajeBusqueda" class="error">Libro no encontrado</p>';
-            return;
+
+        // ---------- 1. Catálogo ----------
+        async function cargarLibros() {
+            DOM.cuerpoTabla.innerHTML = '';
+            DOM.totalLibros.textContent = 'Cargando...';
+            DOM.btnCargar.disabled = true; // Deshabilitar botón
+
+            try {
+                await esperar(RETARDO_MS);
+                const respuesta = await fetch('/libros');
+                if (!respuesta.ok) throw new Error('Error al cargar los libros');
+
+                const libros = await respuesta.json();
+
+                // Construcción segura del DOM (evita XSS)
+                libros.forEach((libro, i) => {
+                    const fila = document.createElement('tr');
+                    fila.id = 'fila-' + libro.id; // Usamos el ID real del libro
+
+                    const tdId = document.createElement('td'); tdId.textContent = libro.id;
+                    const tdTitulo = document.createElement('td'); tdTitulo.textContent = libro.titulo; tdTitulo.className = 'col-titulo';
+                    const tdAutor = document.createElement('td'); tdAutor.textContent = libro.autor;
+                    const tdCategoria = document.createElement('td'); tdCategoria.textContent = libro.categoria;
+                    const tdAnio = document.createElement('td'); tdAnio.textContent = libro.anio;
+
+                    fila.append(tdId, tdTitulo, tdAutor, tdCategoria, tdAnio);
+                    DOM.cuerpoTabla.appendChild(fila);
+                });
+
+                DOM.totalLibros.textContent = libros.length + ' libros encontrados';
+            } catch (error) {
+                mostrarError(DOM.totalLibros, 'No se pudieron cargar los libros. Intente de nuevo.');
+                console.error(error);
+            } finally {
+                DOM.btnCargar.disabled = false; // Volver a habilitar el botón
+            }
         }
-        if (!respuesta.ok) {
-            resultado.innerHTML = '<p id="mensajeBusqueda" class="error">Error ' + respuesta.status + '</p>';
-            return;
+
+        // ---------- 2. Búsqueda ----------
+        async function buscarLibro() {
+            DOM.resultado.innerHTML = '';
+            const id = DOM.idLibro.value.trim();
+
+            if (id === '') {
+                mostrarError(DOM.resultado, 'Por favor, ingrese un ID.', true);
+                return;
+            }
+
+            DOM.resultado.innerHTML = '<p id="cargando">Buscando...</p>';
+            DOM.btnBuscar.disabled = true;
+
+            try {
+                await esperar(RETARDO_MS);
+                const respuesta = await fetch('/libros/' + encodeURIComponent(id));
+
+                if (respuesta.status === 404) throw new Error('Libro no encontrado');
+                if (!respuesta.ok) throw new Error('Error ' + respuesta.status);
+
+                const libro = await respuesta.json();
+
+                // Construcción segura de la tarjeta
+                const tarjeta = document.createElement('div');
+                tarjeta.className = 'tarjeta';
+                tarjeta.innerHTML = `
+                    <p><strong>Título:</strong> <span></span></p>
+                    <p><strong>Autor:</strong> <span></span></p>
+                    <p><strong>Categoría:</strong> <span></span></p>
+                    <p><strong>Año:</strong> <span></span></p>
+                `;
+
+                // Insertamos el texto de forma segura
+                const spans = tarjeta.querySelectorAll('span');
+                spans[0].textContent = libro.titulo;
+                spans[1].textContent = libro.autor;
+                spans[2].textContent = libro.categoria;
+                spans[3].textContent = libro.anio;
+
+                DOM.resultado.appendChild(tarjeta);
+            } catch (error) {
+                mostrarError(DOM.resultado, error.message, true);
+            } finally {
+                DOM.btnBuscar.disabled = false;
+            }
         }
-        const libro = await respuesta.json();
-        resultado.innerHTML =
-            '<div id="tarjetaLibro" class="tarjeta">' +
-            '<p><strong>Título:</strong> <span id="tituloLibro">' + libro.titulo + '</span></p>' +
-            '<p><strong>Autor:</strong> <span id="autorLibro">' + libro.autor + '</span></p>' +
-            '<p><strong>Categoría:</strong> <span id="categoriaLibro">' + libro.categoria + '</span></p>' +
-            '<p><strong>Año:</strong> <span id="anioLibro">' + libro.anio + '</span></p>' +
-            '</div>';
-    }
 
-    // ---------- 3. Préstamo (simulado) ----------
-    async function llenarSelectLibros() {
-        const respuesta = await fetch('/libros');
-        const libros = await respuesta.json();
-        const select = document.getElementById('libroPrestamo');
-        libros.forEach(libro => {
-            const opcion = document.createElement('option');
-            opcion.value = libro.titulo;
-            opcion.textContent = libro.titulo;
-            select.appendChild(opcion);
-        });
-    }
+        // ---------- 3. Préstamo ----------
+        async function llenarSelectLibros() {
+            try {
+                const respuesta = await fetch('/libros');
+                if (!respuesta.ok) throw new Error('Error al cargar libros');
 
-    function solicitarPrestamo() {
-        const mensaje = document.getElementById('mensajePrestamo');
-        const nombre = document.getElementById('nombreLector').value.trim();
-        const libro = document.getElementById('libroPrestamo').value;
-        const tipo = document.querySelector('input[name="tipo"]:checked').value;
-        const acepta = document.getElementById('aceptaReglamento').checked;
+                const libros = await respuesta.json();
+                DOM.libroPrestamo.innerHTML = '<option value="">-- Seleccione --</option>';
 
-        mensaje.className = 'error';
-        if (nombre === '') { mensaje.textContent = 'El nombre es obligatorio'; return; }
-        if (libro === '') { mensaje.textContent = 'Seleccione un libro'; return; }
-        if (!acepta) { mensaje.textContent = 'Debe aceptar el reglamento'; return; }
+                libros.forEach(libro => {
+                    const opcion = document.createElement('option');
+                    opcion.value = libro.titulo;
+                    opcion.textContent = libro.titulo;
+                    DOM.libroPrestamo.appendChild(opcion);
+                });
+            } catch (error) {
+                DOM.libroPrestamo.innerHTML = '<option value="">Error al cargar libros</option>';
+                console.error(error);
+            }
+        }
 
-        mensaje.className = 'ok';
-        mensaje.textContent = 'Préstamo registrado: ' + libro + ' para ' + nombre + ' (' + tipo + ')';
-    }
+        function solicitarPrestamo() {
+            const nombre = DOM.nombreLector.value.trim();
+            const libro = DOM.libroPrestamo.value;
+            const tipo = document.querySelector('input[name="tipo"]:checked').value;
+            const acepta = document.getElementById('aceptaReglamento').checked;
 
-    document.getElementById('btnCargar').addEventListener('click', cargarLibros);
-    document.getElementById('btnBuscar').addEventListener('click', buscarLibro);
-    document.getElementById('btnSolicitar').addEventListener('click', solicitarPrestamo);
-    llenarSelectLibros();
+            DOM.mensajePrestamo.className = 'error';
+
+            if (nombre === '') { DOM.mensajePrestamo.textContent = 'El nombre es obligatorio'; return; }
+            if (libro === '') { DOM.mensajePrestamo.textContent = 'Seleccione un libro'; return; }
+            if (!acepta) { DOM.mensajePrestamo.textContent = 'Debe aceptar el reglamento'; return; }
+
+            DOM.mensajePrestamo.className = 'ok';
+            DOM.mensajePrestamo.textContent = `Préstamo registrado: ${libro} para ${nombre} (${tipo})`;
+        }
+
+        // ---------- Event Listeners ----------
+        DOM.btnCargar.addEventListener('click', cargarLibros);
+        DOM.btnBuscar.addEventListener('click', buscarLibro);
+        DOM.btnSolicitar.addEventListener('click', solicitarPrestamo);
+
+        // Inicialización
+        llenarSelectLibros();
+    })();
 </script>
 </body>
 </html>
