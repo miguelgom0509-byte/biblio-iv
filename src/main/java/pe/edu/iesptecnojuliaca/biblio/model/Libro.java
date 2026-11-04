@@ -6,10 +6,9 @@ public class Libro {
     private String autor;
     private String categoria;
     private int anio;
-    private int stock; // Atributo agregado
+    private int stock; // <-- ESTO ES VITAL
 
-    public Libro() {
-    }
+    public Libro() {}
 
     public Libro(int id, String titulo, String autor, String categoria, int anio, int stock) {
         this.id = id;
@@ -20,6 +19,7 @@ public class Libro {
         this.stock = stock;
     }
 
+    // Getters y Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -35,7 +35,6 @@ public class Libro {
     public int getAnio() { return anio; }
     public void setAnio(int anio) { this.anio = anio; }
 
-    // ¡Este getter es el que lee el HTML!
-    public int getStock() { return stock; }
-    public void setStock(int stock) { this.stock = stock; }
+    public int getStock() { return stock; } // <-- HTML lee esto
+    public void setStock(int stock) { this.stock = stock; } // <-- JSON PUT escribe esto
 }
