@@ -4,37 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>BiblioTech | Sistema de Gestión</title>
-    <!-- Iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Fuente Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            /* Tema Claro (Por defecto) */
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg-body: #f3f4f6;
-            --bg-sidebar: #111827;
-            --surface: #ffffff;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --success: #10b981;
-            --danger: #ef4444;
-            --radius: 12px;
+            --primary: #4f46e5; --primary-hover: #4338ca; --bg-body: #f3f4f6;
+            --bg-sidebar: #111827; --surface: #ffffff; --text-main: #1f2937;
+            --text-muted: #6b7280; --border: #e5e7eb; --success: #10b981;
+            --danger: #ef4444; --radius: 12px;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
         }
 
-        /* Tema Oscuro */
         [data-theme="dark"] {
-            --bg-body: #111827;
-            --surface: #1f2937;
-            --text-main: #f9fafb;
-            --text-muted: #9ca3af;
-            --border: #374151;
+            --bg-body: #111827; --surface: #1f2937; --text-main: #f9fafb;
+            --text-muted: #9ca3af; --border: #374151;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
@@ -62,7 +48,7 @@
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
         .page-title { font-size: 24px; font-weight: 700; }
 
-        /* --- DASHBOARD STATS --- */
+        /* --- DASHBOARD --- */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px; }
         .stat-card { background: var(--surface); padding: 24px; border-radius: var(--radius); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 20px; border: 1px solid var(--border); }
         .stat-icon { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
@@ -82,22 +68,24 @@
         tbody tr:hover { background: rgba(0,0,0,0.02); }
         tbody tr:last-child td { border-bottom: none; }
 
-        /* Empty State */
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
         .empty-state i { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
 
         /* --- FORMS & BUTTONS --- */
-        .input-group { display: flex; gap: 12px; align-items: center; }
-        input[type="text"], input[type="number"], select { padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: 0.2s; font-size: 14px; background: var(--surface); color: var(--text-main); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+
+        input[type="text"], input[type="number"], select { padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: 0.2s; font-size: 14px; background: var(--surface); color: var(--text-main); width: 100%; }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
 
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; height: 42px; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
         .btn-danger { background: #fee2e2; color: var(--danger); }
         .btn-danger:hover { background: #fecaca; }
-        .btn-icon { padding: 8px; border-radius: 6px; }
+        .btn-icon { padding: 8px; border-radius: 6px; height: auto; }
 
         /* --- MODAL --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
@@ -105,11 +93,7 @@
         .modal { background: var(--surface); width: 100%; max-width: 500px; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 24px; animation: slideUp 0.3s ease; border: 1px solid var(--border); }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .modal-title { font-size: 18px; font-weight: 600; }
         .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
-        .form-group input { width: 100%; }
 
         /* --- TOASTS --- */
         #toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
@@ -119,9 +103,12 @@
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes fadeOut { to { opacity: 0; transform: translateX(100%); } }
 
-        /* Spinner de carga */
         .spinner { animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Separador visual para parámetros */
+        .params-group { background: rgba(0,0,0,0.03); padding: 16px; border-radius: 8px; border: 1px dashed var(--border); margin-top: 16px; }
+        .params-title { font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
@@ -141,7 +128,7 @@
 </aside>
 
 <main class="main-content">
-    <!-- 1. DASHBOARD -->
+    <!-- DASHBOARD -->
     <section id="dashboard" class="page-section active">
         <div class="page-header"><h1 class="page-title">Resumen General</h1></div>
         <div class="stats-grid">
@@ -160,18 +147,17 @@
         </div>
     </section>
 
-    <!-- 2. CATÁLOGO -->
+    <!-- CATÁLOGO -->
     <section id="catalogo" class="page-section">
         <div class="page-header">
             <h1 class="page-title">Catálogo de Libros</h1>
             <button class="btn btn-primary" onclick="abrirModalLibro()"><i class="fa-solid fa-plus"></i> Agregar Libro</button>
         </div>
-
         <div class="card">
             <div class="card-header">
-                <div class="input-group">
-                    <i class="fa-solid fa-search" style="color:var(--text-muted)"></i>
-                    <input type="text" id="buscadorLibros" placeholder="Buscar por título o autor..." onkeyup="filtrarLibros()" style="width: 300px;">
+                <div style="position:relative; width: 300px;">
+                    <i class="fa-solid fa-search" style="position:absolute; left:12px; top:12px; color:var(--text-muted)"></i>
+                    <input type="text" id="buscadorLibros" placeholder="Buscar por título o autor..." onkeyup="filtrarLibros()" style="padding-left: 36px;">
                 </div>
             </div>
             <div class="table-container">
@@ -187,43 +173,69 @@
         </div>
     </section>
 
-    <!-- 3. PRÉSTAMOS -->
+    <!-- PRÉSTAMOS (MEJORADO) -->
     <section id="prestamos" class="page-section">
         <div class="page-header"><h1 class="page-title">Gestión de Préstamos</h1></div>
 
-        <div class="card" style="margin-bottom: 24px; padding: 24px;">
-            <h3 style="margin-bottom: 16px; font-size: 16px;">Evaluar Préstamo</h3>
-            <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3 style="font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-file-signature" style="color: var(--primary);"></i> Nuevo Préstamo</h3>
+            </div>
+            <div style="padding: 24px;">
+                <div class="form-grid">
+                    <!-- Selector de Estudiante -->
+                    <div class="form-group">
+                        <label>Estudiante Solicitante</label>
+                        <select id="idEstudiante">
+                            <option value="">Cargando estudiantes...</option>
+                        </select>
+                    </div>
 
-                <div class="form-group" style="margin:0; flex: 1; min-width: 200px;">
-                    <label>Estudiante</label>
-                    <!-- Ahora es un SELECT, no un input -->
-                    <select id="idEstudiante" style="width: 100%;">
-                        <option value="">Cargando estudiantes...</option>
-                    </select>
+                    <!-- Selector de Libro (¡NUEVO!) -->
+                    <div class="form-group">
+                        <label>Libro Solicitado</label>
+                        <select id="libroId">
+                            <option value="">Cargando libros...</option>
+                        </select>
+                    </div>
+
+                    <!-- Botón de Evaluar -->
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="btnEvaluar" onclick="evaluarPrestamoBackend()">
+                            <i class="fa-solid fa-check-circle"></i> Evaluar Préstamo
+                        </button>
+                    </div>
                 </div>
 
-                <div class="form-group" style="margin:0; flex: 1; min-width: 150px;">
-                    <label>Stock Disponible</label>
-                    <input type="number" id="stockLibro" placeholder="Ej. 5" value="5" style="width: 100%;">
+                <!-- Parámetros de simulación (agrupados para que no distraigan) -->
+                <div class="params-group">
+                    <div class="params-title"><i class="fa-solid fa-sliders"></i> Parámetros de Validación (Simulación Backend)</div>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="form-group">
+                            <label>Stock Disponible del Libro</label>
+                            <input type="number" id="stockLibro" value="5" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Préstamos Activos del Estudiante</label>
+                            <input type="number" id="prestamosActivos" value="0" min="0">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group" style="margin:0; flex: 1; min-width: 150px;">
-                    <label>Préstamos Activos</label>
-                    <input type="number" id="prestamosActivos" placeholder="Ej. 0" value="0" style="width: 100%;">
-                </div>
-                <button class="btn btn-primary" id="btnEvaluar" onclick="evaluarPrestamoBackend()" style="height: 42px;"><i class="fa-solid fa-check-circle"></i> Evaluar</button>
             </div>
         </div>
 
+        <!-- Tabla de Préstamos -->
         <div class="card">
-            <div class="card-header"><h3 style="font-size: 16px;">Registro de Préstamos de esta Sesión</h3></div>
+            <div class="card-header">
+                <h3 style="font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-list-check" style="color: var(--success);"></i> Préstamos de esta Sesión</h3>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>
-                    <tr><th>Estudiante</th><th>Libro</th><th>Fecha Préstamo</th><th>Acciones</th></tr>
+                    <tr><th>Estudiante</th><th>Libro</th><th>Fecha Préstamo</th><th>Estado</th><th>Acciones</th></tr>
                     </thead>
                     <tbody id="tablaPrestamosBody">
-                    <tr><td colspan="4" class="empty-state"><i class="fa-solid fa-clipboard-list"></i><br>No hay préstamos registrados hoy</td></tr>
+                    <tr><td colspan="5" class="empty-state"><i class="fa-solid fa-clipboard-list"></i><br>No hay préstamos registrados hoy</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -238,23 +250,23 @@
             <h2 class="modal-title">Agregar Nuevo Libro</h2>
             <button class="close-btn" onclick="cerrarModalLibro()"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 16px;">
             <label>Título del Libro</label>
             <input type="text" id="nuevoTitulo" placeholder="Ej. Cien Años de Soledad">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 16px;">
             <label>Autor</label>
             <input type="text" id="nuevoAutor" placeholder="Ej. Gabriel García Márquez">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 16px;">
             <label>Categoría</label>
             <input type="text" id="nuevaCategoria" placeholder="Ej. Novela">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 24px;">
             <label>Año</label>
             <input type="number" id="nuevoAnio" placeholder="Ej. 1967">
         </div>
-        <button class="btn btn-primary" id="btnGuardarLibro" style="width: 100%; justify-content: center;" onclick="guardarLibroBackend()">Guardar Libro</button>
+        <button class="btn btn-primary" id="btnGuardarLibro" style="width: 100%;" onclick="guardarLibroBackend()">Guardar Libro</button>
     </div>
 </div>
 
@@ -265,7 +277,6 @@
     let estudiantesGlobales = [];
     let prestamos = [];
 
-    // --- MODO OSCURO ---
     function toggleTheme() {
         const html = document.documentElement;
         const btn = document.getElementById('themeBtn');
@@ -278,7 +289,6 @@
         }
     }
 
-    // --- NAVEGACIÓN Y UI ---
     function switchTab(tabId, element) {
         document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -299,16 +309,13 @@
         }, 3000);
     }
 
-    // ==========================================
-    // CONEXIÓN CON SPRING BOOT
-    // ==========================================
-
+    // --- CARGA DE DATOS ---
     async function cargarLibrosBackend() {
         try {
             const respuesta = await fetch('/libros');
-            if (!respuesta.ok) throw new Error('Error al conectar');
             librosGlobales = await respuesta.json();
             renderizarLibros(librosGlobales);
+            actualizarSelectLibros();
             actualizarDashboard();
         } catch (error) {
             document.getElementById('tablaLibrosBody').innerHTML = `<tr><td colspan="6" class="empty-state" style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i><br>Error al cargar los libros</td></tr>`;
@@ -318,27 +325,102 @@
     async function cargarEstudiantesBackend() {
         try {
             const respuesta = await fetch('/estudiantes');
-            if (!respuesta.ok) throw new Error('Error al conectar');
             estudiantesGlobales = await respuesta.json();
 
-            // Actualizar Dashboard
             document.getElementById('stat-estudiantes').textContent = estudiantesGlobales.length;
 
-            // Llenar el Select de Préstamos
             const select = document.getElementById('idEstudiante');
             select.innerHTML = '<option value="">Seleccione un estudiante...</option>';
             estudiantesGlobales.forEach(est => {
-                const option = document.createElement('option');
-                option.value = est.id;
-                option.textContent = `${est.nombre} (ID: ${est.id})`;
-                select.appendChild(option);
+                select.innerHTML += `<option value="${est.id}">${est.nombre} (ID: ${est.id})</option>`;
             });
-
         } catch (error) {
-            document.getElementById('idEstudiante').innerHTML = '<option value="">Error al cargar estudiantes</option>';
+            document.getElementById('idEstudiante').innerHTML = '<option value="">Error al cargar</option>';
         }
     }
 
+    function actualizarSelectLibros() {
+        const select = document.getElementById('libroId');
+        select.innerHTML = '<option value="">Seleccione un libro...</option>';
+        librosGlobales.forEach(libro => {
+            select.innerHTML += `<option value="${libro.id}">${libro.titulo}</option>`;
+        });
+    }
+
+    // --- LÓGICA DE PRÉSTAMOS ---
+    async function evaluarPrestamoBackend() {
+        const idEstudiante = document.getElementById('idEstudiante').value;
+        const libroId = document.getElementById('libroId').value;
+        const stock = document.getElementById('stockLibro').value;
+        const prestamosActivos = document.getElementById('prestamosActivos').value;
+        const btn = document.getElementById('btnEvaluar');
+
+        if(!idEstudiante) return showToast('Seleccione un estudiante', 'error');
+        if(!libroId) return showToast('Seleccione un libro', 'error');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Evaluando...';
+
+        try {
+            // Tu backend actual usa estos parámetros
+            const url = `/api/prestamos/evaluar?idEstudiante=${idEstudiante}&stock=${stock}&prestamosActivos=${prestamosActivos}`;
+            const respuesta = await fetch(url);
+            const data = await respuesta.json();
+
+            if (data.autorizado) {
+                showToast(data.mensaje, 'success');
+
+                // Buscamos los datos reales para mostrarlos bonitos en la tabla
+                const estudianteObj = estudiantesGlobales.find(e => e.id == idEstudiante);
+                const libroObj = librosGlobales.find(l => l.id == libroId);
+
+                prestamos.push({
+                    estudianteNombre: estudianteObj ? estudianteObj.nombre : "Desconocido",
+                    libroTitulo: libroObj ? libroObj.titulo : "Desconocido",
+                    fecha: new Date().toLocaleDateString(),
+                    estado: "Activo"
+                });
+                renderizarPrestamos();
+            } else {
+                showToast(data.mensaje, 'error');
+            }
+        } catch (error) {
+            showToast('Error al conectar con el servidor', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Evaluar Préstamo';
+        }
+    }
+
+    function renderizarPrestamos() {
+        const tbody = document.getElementById('tablaPrestamosBody');
+        if (prestamos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><i class="fa-solid fa-clipboard-list"></i><br>No hay préstamos registrados hoy</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = '';
+        prestamos.forEach((prestamo, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight: 500;">${prestamo.estudianteNombre}</td>
+                <td>${prestamo.libroTitulo}</td>
+                <td>${prestamo.fecha}</td>
+                <td><span style="background:#d1fae5; color:#059669; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600;">${prestamo.estado}</span></td>
+                <td><button class="btn btn-danger btn-icon" onclick="devolverLibro(${index})" title="Registrar Devolución"><i class="fa-solid fa-rotate-left"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        actualizarDashboard();
+    }
+
+    function devolverLibro(index) {
+        prestamos.splice(index, 1);
+        renderizarPrestamos();
+        showToast('Devolución registrada correctamente', 'success');
+    }
+
+    // --- LÓGICA DE LIBROS (CATÁLOGO) ---
     async function guardarLibroBackend() {
         const btn = document.getElementById('btnGuardarLibro');
         const titulo = document.getElementById('nuevoTitulo').value;
@@ -351,16 +433,12 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Guardando...';
 
-        const nuevoLibro = { titulo, autor, categoria, anio: anio ? parseInt(anio) : 0 };
-
         try {
-            const respuesta = await fetch('/libros', {
+            await fetch('/libros', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(nuevoLibro)
+                body: JSON.stringify({ titulo, autor, categoria, anio: anio ? parseInt(anio) : 0 })
             });
-
-            if (!respuesta.ok) throw new Error('Error al guardar');
 
             cerrarModalLibro();
             cargarLibrosBackend();
@@ -385,27 +463,24 @@
         }
     }
 
-    // --- RENDERIZADO DE LIBROS ---
     function renderizarLibros(librosAMostrar) {
         const tbody = document.getElementById('tablaLibrosBody');
-
         if (librosAMostrar.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fa-solid fa-book-open"></i><br>No hay libros en el catálogo</td></tr>`;
             return;
         }
-
         tbody.innerHTML = '';
         librosAMostrar.forEach(libro => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${libro.id}</td>
-                <td style="font-weight: 500;">${libro.titulo}</td>
-                <td>${libro.autor}</td>
-                <td>${libro.categoria}</td>
-                <td>${libro.anio}</td>
-                <td><button class="btn btn-danger btn-icon" onclick="eliminarLibroBackend(${libro.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button></td>
+            tbody.innerHTML += `
+                <tr>
+                    <td>${libro.id}</td>
+                    <td style="font-weight: 500;">${libro.titulo}</td>
+                    <td>${libro.autor}</td>
+                    <td>${libro.categoria}</td>
+                    <td>${libro.anio}</td>
+                    <td><button class="btn btn-danger btn-icon" onclick="eliminarLibroBackend(${libro.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
             `;
-            tbody.appendChild(tr);
         });
     }
 
@@ -417,75 +492,6 @@
         renderizarLibros(filtrados);
     }
 
-    // --- EVALUACIÓN DE PRÉSTAMOS ---
-    async function evaluarPrestamoBackend() {
-        const idEstudiante = document.getElementById('idEstudiante').value;
-        const stock = document.getElementById('stockLibro').value;
-        const prestamosActivos = document.getElementById('prestamosActivos').value;
-        const btn = document.getElementById('btnEvaluar');
-
-        if(!idEstudiante) return showToast('Seleccione un estudiante', 'error');
-
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Evaluando...';
-
-        try {
-            const url = `/api/prestamos/evaluar?idEstudiante=${idEstudiante}&stock=${stock}&prestamosActivos=${prestamosActivos}`;
-            const respuesta = await fetch(url);
-            const data = await respuesta.json();
-
-            if (data.autorizado) {
-                showToast(data.mensaje, 'success');
-
-                const estudiante = estudiantesGlobales.find(e => e.id == idEstudiante);
-                const libroSeleccionado = librosGlobales.length > 0 ? librosGlobales[0].titulo : "Libro genérico";
-                const nuevaFecha = new Date().toLocaleDateString();
-
-                prestamos.push({
-                    estudianteNombre: estudiante ? estudiante.nombre : "ID: " + idEstudiante,
-                    libroTitulo: libroSeleccionado,
-                    fecha: nuevaFecha
-                });
-                renderizarPrestamos();
-            } else {
-                showToast(data.mensaje, 'error');
-            }
-        } catch (error) {
-            showToast('Error al conectar con el servidor', 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Evaluar';
-        }
-    }
-
-    function renderizarPrestamos() {
-        const tbody = document.getElementById('tablaPrestamosBody');
-        if (prestamos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="empty-state"><i class="fa-solid fa-clipboard-list"></i><br>No hay préstamos registrados hoy</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = '';
-        prestamos.forEach((prestamo, index) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="font-weight: 500;">${prestamo.estudianteNombre}</td>
-                <td>${prestamo.libroTitulo}</td>
-                <td>${prestamo.fecha}</td>
-                <td><button class="btn btn-danger btn-icon" onclick="eliminarPrestamo(${index})"><i class="fa-solid fa-rotate-left"></i></button></td>
-            `;
-            tbody.appendChild(tr);
-        });
-        actualizarDashboard();
-    }
-
-    function eliminarPrestamo(index) {
-        prestamos.splice(index, 1);
-        renderizarPrestamos();
-        showToast('Libro devuelto correctamente', 'success');
-    }
-
-    // --- MODAL Y DASHBOARD ---
     function abrirModalLibro() { document.getElementById('modalLibro').classList.add('active'); }
     function cerrarModalLibro() {
         document.getElementById('modalLibro').classList.remove('active');
@@ -500,7 +506,6 @@
         document.getElementById('stat-prestamos').textContent = prestamos.length;
     }
 
-    // --- INICIALIZACIÓN ---
     document.addEventListener('DOMContentLoaded', () => {
         cargarLibrosBackend();
         cargarEstudiantesBackend();
