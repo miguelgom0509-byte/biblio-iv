@@ -17,12 +17,10 @@
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
         }
-
         [data-theme="dark"] {
             --bg-body: #111827; --surface: #1f2937; --text-main: #f9fafb;
             --text-muted: #9ca3af; --border: #374151;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
         body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
@@ -34,7 +32,6 @@
         .nav-item { padding: 12px 16px; border-radius: 8px; color: #9ca3af; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; text-decoration: none; font-weight: 500;}
         .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.1); color: white; }
         .nav-item.active { background-color: var(--primary); }
-
         .theme-toggle { padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
         .theme-btn { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #374151; background: transparent; color: #9ca3af; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; transition: 0.2s; }
         .theme-btn:hover { background: rgba(255,255,255,0.05); color: white; }
@@ -44,7 +41,6 @@
         .page-section { display: none; animation: fadeIn 0.3s ease; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
         .page-title { font-size: 24px; font-weight: 700; }
 
@@ -67,7 +63,6 @@
         th { background: rgba(0,0,0,0.02); font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
         tbody tr:hover { background: rgba(0,0,0,0.02); }
         tbody tr:last-child td { border-bottom: none; }
-
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
         .empty-state i { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
 
@@ -75,10 +70,8 @@
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end; }
         .form-group { display: flex; flex-direction: column; gap: 8px; }
         .form-group label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
-
         input[type="text"], input[type="number"], select { padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: 0.2s; font-size: 14px; background: var(--surface); color: var(--text-main); width: 100%; }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
-
         .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; height: 42px; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-hover); }
@@ -87,7 +80,7 @@
         .btn-danger:hover { background: #fecaca; }
         .btn-icon { padding: 8px; border-radius: 6px; height: auto; }
 
-        /* --- MODAL --- */
+        /* --- MODAL & TOASTS --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
         .modal { background: var(--surface); width: 100%; max-width: 500px; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 24px; animation: slideUp 0.3s ease; border: 1px solid var(--border); }
@@ -95,7 +88,6 @@
         .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
 
-        /* --- TOASTS --- */
         #toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
         .toast { padding: 16px 24px; border-radius: 8px; color: white; font-weight: 500; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease forwards; }
         .toast.success { background: var(--success); }
@@ -105,10 +97,6 @@
 
         .spinner { animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        /* Separador visual para parámetros */
-        .params-group { background: rgba(0,0,0,0.03); padding: 16px; border-radius: 8px; border: 1px dashed var(--border); margin-top: 16px; }
-        .params-title { font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
@@ -163,17 +151,17 @@
             <div class="table-container">
                 <table>
                     <thead>
-                    <tr><th>ID</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Año</th><th>Acciones</th></tr>
+                    <tr><th>ID</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Año</th><th>Stock</th><th>Acciones</th></tr>
                     </thead>
                     <tbody id="tablaLibrosBody">
-                    <tr><td colspan="6" class="empty-state"><i class="fa-solid fa-spinner spinner"></i><br>Cargando libros...</td></tr>
+                    <tr><td colspan="7" class="empty-state"><i class="fa-solid fa-spinner spinner"></i><br>Cargando libros...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </section>
 
-    <!-- PRÉSTAMOS (MEJORADO) -->
+    <!-- PRÉSTAMOS -->
     <section id="prestamos" class="page-section">
         <div class="page-header"><h1 class="page-title">Gestión de Préstamos</h1></div>
 
@@ -183,7 +171,6 @@
             </div>
             <div style="padding: 24px;">
                 <div class="form-grid">
-                    <!-- Selector de Estudiante -->
                     <div class="form-group">
                         <label>Estudiante Solicitante</label>
                         <select id="idEstudiante">
@@ -191,7 +178,6 @@
                         </select>
                     </div>
 
-                    <!-- Selector de Libro (¡NUEVO!) -->
                     <div class="form-group">
                         <label>Libro Solicitado</label>
                         <select id="libroId">
@@ -199,26 +185,10 @@
                         </select>
                     </div>
 
-                    <!-- Botón de Evaluar -->
                     <div class="form-group">
                         <button class="btn btn-primary" id="btnEvaluar" onclick="evaluarPrestamoBackend()">
-                            <i class="fa-solid fa-check-circle"></i> Evaluar Préstamo
+                            <i class="fa-solid fa-check-circle"></i> Evaluar y Prestar
                         </button>
-                    </div>
-                </div>
-
-                <!-- Parámetros de simulación (agrupados para que no distraigan) -->
-                <div class="params-group">
-                    <div class="params-title"><i class="fa-solid fa-sliders"></i> Parámetros de Validación (Simulación Backend)</div>
-                    <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
-                        <div class="form-group">
-                            <label>Stock Disponible del Libro</label>
-                            <input type="number" id="stockLibro" value="5" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Préstamos Activos del Estudiante</label>
-                            <input type="number" id="prestamosActivos" value="0" min="0">
-                        </div>
                     </div>
                 </div>
             </div>
@@ -309,7 +279,6 @@
         }, 3000);
     }
 
-    // --- CARGA DE DATOS ---
     async function cargarLibrosBackend() {
         try {
             const respuesta = await fetch('/libros');
@@ -318,7 +287,7 @@
             actualizarSelectLibros();
             actualizarDashboard();
         } catch (error) {
-            document.getElementById('tablaLibrosBody').innerHTML = `<tr><td colspan="6" class="empty-state" style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i><br>Error al cargar los libros</td></tr>`;
+            document.getElementById('tablaLibrosBody').innerHTML = `<tr><td colspan="7" class="empty-state" style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i><br>Error al cargar los libros</td></tr>`;
         }
     }
 
@@ -326,7 +295,6 @@
         try {
             const respuesta = await fetch('/estudiantes');
             estudiantesGlobales = await respuesta.json();
-
             document.getElementById('stat-estudiantes').textContent = estudiantesGlobales.length;
 
             const select = document.getElementById('idEstudiante');
@@ -343,16 +311,16 @@
         const select = document.getElementById('libroId');
         select.innerHTML = '<option value="">Seleccione un libro...</option>';
         librosGlobales.forEach(libro => {
-            select.innerHTML += `<option value="${libro.id}">${libro.titulo}</option>`;
+            // Si el libro no tiene stock, lo deshabilitamos en el select
+            const disabled = libro.stock <= 0 ? 'disabled' : '';
+            select.innerHTML += `<option value="${libro.id}" ${disabled}>${libro.titulo} (Stock: ${libro.stock})</option>`;
         });
     }
 
-    // --- LÓGICA DE PRÉSTAMOS ---
+    // --- LÓGICA DE PRÉSTAMOS ACTUALIZADA ---
     async function evaluarPrestamoBackend() {
         const idEstudiante = document.getElementById('idEstudiante').value;
         const libroId = document.getElementById('libroId').value;
-        const stock = document.getElementById('stockLibro').value;
-        const prestamosActivos = document.getElementById('prestamosActivos').value;
         const btn = document.getElementById('btnEvaluar');
 
         if(!idEstudiante) return showToast('Seleccione un estudiante', 'error');
@@ -362,15 +330,14 @@
         btn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Evaluando...';
 
         try {
-            // Tu backend actual usa estos parámetros
-            const url = `/api/prestamos/evaluar?idEstudiante=${idEstudiante}&stock=${stock}&prestamosActivos=${prestamosActivos}`;
+            // AHORA SOLO ENVIAMOS EL ID DEL ESTUDIANTE Y DEL LIBRO
+            const url = `/api/prestamos/evaluar?idEstudiante=${idEstudiante}&idLibro=${libroId}`;
             const respuesta = await fetch(url);
             const data = await respuesta.json();
 
             if (data.autorizado) {
                 showToast(data.mensaje, 'success');
 
-                // Buscamos los datos reales para mostrarlos bonitos en la tabla
                 const estudianteObj = estudiantesGlobales.find(e => e.id == idEstudiante);
                 const libroObj = librosGlobales.find(l => l.id == libroId);
 
@@ -381,6 +348,9 @@
                     estado: "Activo"
                 });
                 renderizarPrestamos();
+
+                // Recargamos los libros para actualizar el stock visualmente
+                cargarLibrosBackend();
             } else {
                 showToast(data.mensaje, 'error');
             }
@@ -388,7 +358,7 @@
             showToast('Error al conectar con el servidor', 'error');
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Evaluar Préstamo';
+            btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Evaluar y Prestar';
         }
     }
 
@@ -415,12 +385,13 @@
     }
 
     function devolverLibro(index) {
+        // Para que la devolución sea real, aquí deberías hacer un fetch a un endpoint del backend
+        // que sume +1 al stock del libro. Por ahora solo lo quitamos de la lista local.
         prestamos.splice(index, 1);
         renderizarPrestamos();
         showToast('Devolución registrada correctamente', 'success');
     }
 
-    // --- LÓGICA DE LIBROS (CATÁLOGO) ---
     async function guardarLibroBackend() {
         const btn = document.getElementById('btnGuardarLibro');
         const titulo = document.getElementById('nuevoTitulo').value;
@@ -466,11 +437,13 @@
     function renderizarLibros(librosAMostrar) {
         const tbody = document.getElementById('tablaLibrosBody');
         if (librosAMostrar.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fa-solid fa-book-open"></i><br>No hay libros en el catálogo</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fa-solid fa-book-open"></i><br>No hay libros en el catálogo</td></tr>`;
             return;
         }
         tbody.innerHTML = '';
         librosAMostrar.forEach(libro => {
+            // Pintamos el stock en verde si hay, en rojo si es 0
+            const colorStock = libro.stock > 0 ? '#059669' : '#ef4444';
             tbody.innerHTML += `
                 <tr>
                     <td>${libro.id}</td>
@@ -478,6 +451,7 @@
                     <td>${libro.autor}</td>
                     <td>${libro.categoria}</td>
                     <td>${libro.anio}</td>
+                    <td><strong style="color:${colorStock}">${libro.stock}</strong></td>
                     <td><button class="btn btn-danger btn-icon" onclick="eliminarLibroBackend(${libro.id})"><i class="fa-solid fa-trash"></i></button></td>
                 </tr>
             `;
