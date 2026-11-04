@@ -4,31 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>BiblioTech | Sistema de Gestión</title>
-    <!-- FontAwesome para Iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #4f46e5; /* Indigo moderno */
-            --primary-hover: #4338ca;
-            --bg-body: #f3f4f6;
-            --bg-sidebar: #111827;
-            --surface: #ffffff;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --success: #10b981;
-            --danger: #ef4444;
-            --radius: 12px;
+            --primary: #4f46e5; --primary-hover: #4338ca; --bg-body: #f3f4f6;
+            --bg-sidebar: #111827; --surface: #ffffff; --text-main: #1f2937;
+            --text-muted: #6b7280; --border: #e5e7eb; --success: #10b981;
+            --danger: #ef4444; --radius: 12px;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
         /* --- SIDEBAR --- */
-        .sidebar { width: 260px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; transition: all 0.3s; }
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; }
         .sidebar-header { padding: 24px; display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-header i { color: #818cf8; }
         .nav-menu { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
@@ -43,7 +35,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .page-title { font-size: 24px; font-weight: 700; color: var(--text-main); }
+        .page-title { font-size: 24px; font-weight: 700; }
 
         /* --- DASHBOARD STATS --- */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px; }
@@ -53,7 +45,7 @@
         .stat-icon.green { background: #d1fae5; color: #059669; }
         .stat-icon.orange { background: #ffedd5; color: #ea580c; }
         .stat-info h3 { font-size: 14px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
-        .stat-info p { font-size: 24px; font-weight: 700; color: var(--text-main); }
+        .stat-info p { font-size: 24px; font-weight: 700; }
 
         /* --- CARDS & TABLES --- */
         .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
@@ -75,8 +67,6 @@
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-danger { background: #fee2e2; color: var(--danger); }
         .btn-danger:hover { background: #fecaca; }
-        .btn-success { background: #d1fae5; color: var(--success); }
-        .btn-success:hover { background: #a7f3d0; }
         .btn-icon { padding: 8px; border-radius: 6px; }
 
         /* --- MODAL --- */
@@ -102,11 +92,8 @@
 </head>
 <body>
 
-<!-- BARRA LATERAL -->
 <aside class="sidebar">
-    <div class="sidebar-header">
-        <i class="fa-solid fa-book-open"></i> BiblioTech
-    </div>
+    <div class="sidebar-header"><i class="fa-solid fa-book-open"></i> BiblioTech</div>
     <nav class="nav-menu">
         <a href="#" class="nav-item active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
         <a href="#" class="nav-item" onclick="switchTab('catalogo', this)"><i class="fa-solid fa-book"></i> Catálogo</a>
@@ -114,14 +101,10 @@
     </nav>
 </aside>
 
-<!-- CONTENIDO PRINCIPAL -->
 <main class="main-content">
-
     <!-- 1. DASHBOARD -->
     <section id="dashboard" class="page-section active">
-        <div class="page-header">
-            <h1 class="page-title">Resumen General</h1>
-        </div>
+        <div class="page-header"><h1 class="page-title">Resumen General</h1></div>
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon blue"><i class="fa-solid fa-book"></i></div>
@@ -129,7 +112,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon green"><i class="fa-solid fa-users"></i></div>
-                <div class="stat-info"><h3>Estudiantes</h3><p id="stat-estudiantes">124</p></div>
+                <div class="stat-info"><h3>Estudiantes</h3><p>124</p></div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon orange"><i class="fa-solid fa-clock-rotate-left"></i></div>
@@ -158,19 +141,16 @@
                     <tr><th>ID</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Año</th><th>Acciones</th></tr>
                     </thead>
                     <tbody id="tablaLibrosBody">
-                    <!-- Se llena con JS -->
+                    <!-- Se llena con JS desde Spring Boot -->
                     </tbody>
                 </table>
             </div>
         </div>
     </section>
 
-    <!-- 3. PRÉSTAMOS -->
+    <!-- 3. PRÉSTAMOS (Simulados localmente) -->
     <section id="prestamos" class="page-section">
-        <div class="page-header">
-            <h1 class="page-title">Gestión de Préstamos</h1>
-        </div>
-
+        <div class="page-header"><h1 class="page-title">Gestión de Préstamos</h1></div>
         <div class="card" style="margin-bottom: 24px; padding: 24px;">
             <h3 style="margin-bottom: 16px; font-size: 16px;">Registrar Nuevo Préstamo</h3>
             <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
@@ -187,17 +167,14 @@
                 <button class="btn btn-primary" onclick="registrarPrestamo()" style="height: 42px;"><i class="fa-solid fa-save"></i> Registrar</button>
             </div>
         </div>
-
         <div class="card">
             <div class="card-header"><h3 style="font-size: 16px;">Préstamos Activos</h3></div>
             <div class="table-container">
                 <table>
                     <thead>
-                    <tr><th>Libro</th><th>Estudiante</th><th>Fecha Préstamo</th><th>Estado</th><th>Acciones</th></tr>
+                    <tr><th>Libro</th><th>Estudiante</th><th>Fecha Préstamo</th><th>Acciones</th></tr>
                     </thead>
-                    <tbody id="tablaPrestamosBody">
-                    <!-- Se llena con JS -->
-                    </tbody>
+                    <tbody id="tablaPrestamosBody"></tbody>
                 </table>
             </div>
         </div>
@@ -227,52 +204,109 @@
             <label>Año</label>
             <input type="number" id="nuevoAnio" placeholder="Ej. 1967">
         </div>
-        <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="guardarLibro()">Guardar Libro</button>
+        <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="guardarLibroBackend()">Guardar Libro en Base de Datos</button>
     </div>
 </div>
 
-<!-- CONTENEDOR DE NOTIFICACIONES TOAST -->
 <div id="toast-container"></div>
 
 <script>
-    // --- ESTADO GLOBAL (Simulando Base de Datos) ---
-    let libros = [
-        { id: 1, titulo: "El Quijote", autor: "Miguel de Cervantes", categoria: "Clásico", anio: 1605 },
-        { id: 2, titulo: "Cien Años de Soledad", autor: "Gabriel García Márquez", categoria: "Realismo Mágico", anio: 1967 },
-        { id: 3, titulo: "Clean Code", autor: "Robert C. Martin", categoria: "Programación", anio: 2008 }
-    ];
+    // Variables globales
+    let librosGlobales = [];
+    let prestamos = []; // Préstamos locales simulados
 
-    let prestamos = [
-        { id: 1, libroTitulo: "El Quijote", estudiante: "Ana Gómez", fecha: "2023-10-25", estado: "Activo" }
-    ];
-
-    // --- NAVEGACIÓN ---
+    // --- NAVEGACIÓN Y UI ---
     function switchTab(tabId, element) {
         document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-
         document.getElementById(tabId).classList.add('active');
         element.classList.add('active');
-
         if(tabId === 'dashboard') actualizarDashboard();
     }
 
-    // --- NOTIFICACIONES (TOASTS) ---
     function showToast(mensaje, tipo = 'success') {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = `toast ${tipo}`;
         toast.innerHTML = `<i class="fa-solid ${tipo === 'success' ? 'fa-check-circle' : 'fa-circle-exclamation'}"></i> ${mensaje}`;
         container.appendChild(toast);
-
         setTimeout(() => {
             toast.style.animation = 'fadeOut 0.3s ease forwards';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
 
-    // --- LÓGICA DE LIBROS (CATÁLOGO) ---
-    function renderizarLibros(librosAMostrar = libros) {
+    // ==========================================
+    // CONEXIÓN CON SPRING BOOT (Backend)
+    // ==========================================
+
+    // 1. GET: Cargar libros
+    async function cargarLibrosBackend() {
+        try {
+            const respuesta = await fetch('/libros');
+            if (!respuesta.ok) throw new Error('Error al conectar con el servidor');
+            librosGlobales = await respuesta.json();
+            renderizarLibros(librosGlobales);
+            actualizarDashboard();
+        } catch (error) {
+            console.error(error);
+            showToast('No se pudieron cargar los libros del servidor', 'error');
+        }
+    }
+
+    // 2. POST: Guardar libro
+    async function guardarLibroBackend() {
+        const titulo = document.getElementById('nuevoTitulo').value;
+        const autor = document.getElementById('nuevoAutor').value;
+        const categoria = document.getElementById('nuevaCategoria').value;
+        const anio = document.getElementById('nuevoAnio').value;
+
+        if(!titulo || !autor) return showToast('Título y autor son obligatorios', 'error');
+
+        // Creamos el objeto igual que la clase Libro de Java
+        const nuevoLibro = {
+            titulo: titulo,
+            autor: autor,
+            categoria: categoria,
+            anio: anio ? parseInt(anio) : 0
+        };
+
+        try {
+            const respuesta = await fetch('/libros', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(nuevoLibro)
+            });
+
+            if (!respuesta.ok) throw new Error('Error al guardar');
+
+            cerrarModalLibro();
+            cargarLibrosBackend(); // Recargar la tabla con los datos actualizados
+            showToast('Libro guardado exitosamente', 'success');
+        } catch (error) {
+            console.error(error);
+            showToast('Error al guardar el libro en el servidor', 'error');
+        }
+    }
+
+    // 3. DELETE: Eliminar libro
+    async function eliminarLibroBackend(id) {
+        if(confirm('¿Estás seguro de eliminar este libro de la base de datos?')) {
+            try {
+                const respuesta = await fetch(`/libros/${id}`, { method: 'DELETE' });
+                if (!respuesta.ok) throw new Error('Error al eliminar');
+
+                cargarLibrosBackend(); // Recargar la tabla
+                showToast('Libro eliminado correctamente', 'success');
+            } catch (error) {
+                console.error(error);
+                showToast('Error al eliminar el libro', 'error');
+            }
+        }
+    }
+
+    // --- RENDERIZADO EN PANTALLA ---
+    function renderizarLibros(librosAMostrar) {
         const tbody = document.getElementById('tablaLibrosBody');
         tbody.innerHTML = '';
 
@@ -285,34 +319,25 @@
                 <td>${libro.categoria}</td>
                 <td>${libro.anio}</td>
                 <td>
-                    <button class="btn btn-danger btn-icon" onclick="eliminarLibro(${libro.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn btn-danger btn-icon" onclick="eliminarLibroBackend(${libro.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
 
-        document.getElementById('stat-total-libros').textContent = libros.length;
         actualizarSelectLibros();
     }
 
     function filtrarLibros() {
         const texto = document.getElementById('buscadorLibros').value.toLowerCase();
-        const filtrados = libros.filter(l =>
+        const filtrados = librosGlobales.filter(l =>
             l.titulo.toLowerCase().includes(texto) ||
             l.autor.toLowerCase().includes(texto)
         );
         renderizarLibros(filtrados);
     }
 
-    function eliminarLibro(id) {
-        if(confirm('¿Estás seguro de eliminar este libro?')) {
-            libros = libros.filter(l => l.id !== id);
-            renderizarLibros();
-            showToast('Libro eliminado correctamente', 'success');
-        }
-    }
-
-    // --- MODAL AGREGAR LIBRO ---
+    // --- MODAL ---
     function abrirModalLibro() { document.getElementById('modalLibro').classList.add('active'); }
     function cerrarModalLibro() {
         document.getElementById('modalLibro').classList.remove('active');
@@ -322,30 +347,11 @@
         document.getElementById('nuevoAnio').value = '';
     }
 
-    function guardarLibro() {
-        const titulo = document.getElementById('nuevoTitulo').value;
-        const autor = document.getElementById('nuevoAutor').value;
-        const categoria = document.getElementById('nuevaCategoria').value;
-        const anio = document.getElementById('nuevoAnio').value;
-
-        if(!titulo || !autor) return showToast('Título y autor son obligatorios', 'error');
-
-        const nuevoLibro = {
-            id: libros.length > 0 ? Math.max(...libros.map(l => l.id)) + 1 : 1,
-            titulo, autor, categoria, anio
-        };
-
-        libros.push(nuevoLibro);
-        cerrarModalLibro();
-        renderizarLibros();
-        showToast('Libro agregado exitosamente', 'success');
-    }
-
-    // --- LÓGICA DE PRÉSTAMOS ---
+    // --- LÓGICA DE PRÉSTAMOS (Local) ---
     function actualizarSelectLibros() {
         const select = document.getElementById('libroPrestamo');
         select.innerHTML = '<option value="">Seleccione un libro...</option>';
-        libros.forEach(libro => {
+        librosGlobales.forEach(libro => {
             const option = document.createElement('option');
             option.value = libro.id;
             option.textContent = libro.titulo;
@@ -356,18 +362,16 @@
     function registrarPrestamo() {
         const nombre = document.getElementById('nombreLector').value;
         const libroId = document.getElementById('libroPrestamo').value;
-
         if(!nombre || !libroId) return showToast('Complete todos los campos', 'error');
 
-        const libroSeleccionado = libros.find(l => l.id == libroId);
+        const libroSeleccionado = librosGlobales.find(l => l.id == libroId);
         const nuevaFecha = new Date().toISOString().split('T')[0];
 
         prestamos.push({
-            id: prestamos.length + 1,
+            id: Date.now(),
             libroTitulo: libroSeleccionado.titulo,
             estudiante: nombre,
-            fecha: nuevaFecha,
-            estado: "Activo"
+            fecha: nuevaFecha
         });
 
         document.getElementById('nombreLector').value = '';
@@ -380,22 +384,17 @@
     function renderizarPrestamos() {
         const tbody = document.getElementById('tablaPrestamosBody');
         tbody.innerHTML = '';
-
         prestamos.forEach((prestamo, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="font-weight: 500;">${prestamo.libroTitulo}</td>
                 <td>${prestamo.estudiante}</td>
                 <td>${prestamo.fecha}</td>
-                <td><span style="background:#d1fae5; color:#059669; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${prestamo.estado}</span></td>
-                <td>
-                    <button class="btn btn-success btn-icon" onclick="devolverLibro(${index})" title="Devolver"><i class="fa-solid fa-arrow-rotate-left"></i></button>
-                </td>
+                <td><button class="btn btn-danger btn-icon" onclick="devolverLibro(${index})" title="Devolver"><i class="fa-solid fa-arrow-rotate-left"></i></button></td>
             `;
             tbody.appendChild(tr);
         });
-
-        document.getElementById('stat-prestamos').textContent = prestamos.length;
+        actualizarDashboard();
     }
 
     function devolverLibro(index) {
@@ -404,16 +403,15 @@
         showToast('Libro devuelto correctamente', 'success');
     }
 
-    // --- INICIALIZACIÓN ---
     function actualizarDashboard() {
-        document.getElementById('stat-total-libros').textContent = libros.length;
+        document.getElementById('stat-total-libros').textContent = librosGlobales.length;
         document.getElementById('stat-prestamos').textContent = prestamos.length;
     }
 
+    // --- INICIALIZACIÓN ---
+    // Cuando la página termine de cargar, pide los datos a Spring Boot
     document.addEventListener('DOMContentLoaded', () => {
-        renderizarLibros();
-        renderizarPrestamos();
-        actualizarDashboard();
+        cargarLibrosBackend();
     });
 </script>
 </body>
