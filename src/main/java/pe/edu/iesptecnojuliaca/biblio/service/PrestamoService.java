@@ -1,47 +1,33 @@
 package pe.edu.iesptecnojuliaca.biblio.service;
-import org.springframework.stereotype.Service;
-import pe.edu.iesptecnojuliaca.biblio.model.Estudiante;
-import pe.edu.iesptecnojuliaca.biblio.repository.EstudianteRepository;
 
-import java.util.Optional;
+import org.springframework.stereotype.Service;
+// import pe.edu.iesptecnojuliaca.biblio.repository.EstudianteRepository;
 
 @Service
 public class PrestamoService {
 
-    private final EstudianteRepository estudianteRepository;
+    // Aquí podrías inyectar el EstudianteRepository si necesitas verificar si el estudiante existe o está activo
+    // private final EstudianteRepository estudianteRepository;
 
-    // Inyectamos el repositorio
-    public PrestamoService(EstudianteRepository estudianteRepository) {
-        this.estudianteRepository = estudianteRepository;
+    public PrestamoService(/* EstudianteRepository estudianteRepository */) {
+        // this.estudianteRepository = estudianteRepository;
     }
 
-    // --- TU MÉTODO ORIGINAL (No cambia, tus pruebas JUnit siguen pasando) ---
-    public boolean puedePrestar(int stock, boolean lectorActivo, int prestamosActivos) {
-        if (stock <= 0) {
-            return false;
-        }
-        if (!lectorActivo) {
-            return false;
-        }
-        if (prestamosActivos >= 3) {
-            return false;
-        }
-        return true;
-    }
-
-    // --- NUEVO MÉTODO QUE VALIDA LA EXISTENCIA ---
     public boolean evaluarPrestamoPorId(Long idEstudiante, int stock, int prestamosActivos) {
-        // 1. Buscamos al estudiante en el repositorio
-        Optional<Estudiante> estudianteOpt = estudianteRepository.buscarPorId(idEstudiante);
+        // Lógica de negocio:
+        // 1. Si no hay stock, denegar
+        if (stock <= 0) return false;
 
-        // 2. Si no existe, denegamos el préstamo
-        if (estudianteOpt.isEmpty()) {
-            System.out.println("El estudiante con ID " + idEstudiante + " no existe.");
-            return false;
-        }
+        // 2. Si tiene 3 o más préstamos, denegar
+        if (prestamosActivos >= 3) return false;
 
-        // 3. Si existe, extraemos sus datos y llamamos al método original
-        Estudiante estudiante = estudianteOpt.get();
-        return puedePrestar(stock, estudiante.isActivo(), prestamosActivos);
+        // 3. (Opcional) Verificar que el estudiante existe y está activo
+        // boolean esActivo = estudianteRepository.buscarPorId(idEstudiante)
+        //        .map(Estudiante::isActivo)
+        //        .orElse(false);
+        // if (!esActivo) return false;
+
+        // Si pasa todas las reglas, se autoriza
+        return true;
     }
 }
