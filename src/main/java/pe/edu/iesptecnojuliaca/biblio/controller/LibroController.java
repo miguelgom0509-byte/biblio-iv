@@ -26,10 +26,7 @@ public class LibroController {
     @GetMapping("/{id}")
     public ResponseEntity<Libro> obtener(@PathVariable int id) {
         Libro libro = libroService.obtenerLibro(id);
-        if (libro != null) {
-            return ResponseEntity.ok(libro);
-        }
-        return ResponseEntity.notFound().build();
+        return libro != null ? ResponseEntity.ok(libro) : ResponseEntity.notFound().build();
     }
 
     @PostMapping
@@ -37,12 +34,11 @@ public class LibroController {
         return libroService.guardarLibro(libro);
     }
 
-    // NUEVO MÉTODO PARA ACTUALIZAR (PUT)
+    // ESTO ES LO QUE HACE QUE EL LÁPIZ DE EDITAR FUNCIONE
     @PutMapping("/{id}")
     public Libro actualizar(@PathVariable int id, @RequestBody Libro libro) {
-        libro.setId(id); // Asegura que el ID sea el correcto
+        libro.setId(id); // Nos aseguramos de que mantenga el mismo ID
         return libroService.guardarLibro(libro);
-        // Tu LibroService/Repository ya maneja la lógica: si el ID existe, actualiza.
     }
 
     @DeleteMapping("/{id}")
