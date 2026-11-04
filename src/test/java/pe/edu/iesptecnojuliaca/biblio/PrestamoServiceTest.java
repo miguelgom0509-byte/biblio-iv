@@ -1,79 +1,80 @@
 package pe.edu.iesptecnojuliaca.biblio;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pe.edu.iesptecnojuliaca.biblio.repository.EstudianteRepository;
+import org.mockito.Mockito;
+import pe.edu.iesptecnojuliaca.biblio.model.Libro;
+import pe.edu.iesptecnojuliaca.biblio.repository.LibroRepository;
 import pe.edu.iesptecnojuliaca.biblio.service.PrestamoService;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class PrestamoServiceTest {
 
-    // CP01: No hay stock (Ejemplo del PDF)
+    private LibroRepository libroRepositoryMock;
+    private PrestamoService servicio;
+
+    @BeforeEach
+    void setUp() {
+        // Creamos un repositorio falso (Mock) para no usar los datos reales de la base de datos
+        libroRepositoryMock = mock(LibroRepository.class);
+        // Le pasamos el repositorio falso al servicio
+        servicio = new PrestamoService(libroRepositoryMock);
+    }
+
+    // CP01: No hay stock (El libro tiene stock 0)
     @Test
     void noDebePrestarSinStock() {
-        // Arrange
-        EstudianteRepository repo = new EstudianteRepository();
-        PrestamoService servicio = new PrestamoService(repo);
+        // Arrange: Creamos un libro con stock 0 y decimos que cuando busquen el ID 1, devuelva ese libro
+        Libro libroSinStock = new Libro(1, "Java desde cero", "Carlos", "Prog", 2026, 0);
+        when(libroRepositoryMock.buscarPorId(1)).thenReturn(libroSinStock);
 
-        // Act
-        boolean resultado = servicio.puedePrestar(0, true, 0);
+        // Act: Evaluamos el préstamo del estudiante 1 con el libro 1
+        boolean resultado = servicio.evaluarPrestamo(1, 1);
 
-        // Assert
+        // Assert: Debería denegar el préstamo
         assertFalse(resultado, "Debería retornar false porque no hay stock");
     }
 
-    // CP02: Lector inactivo
+    // CP02: Préstamo exitoso (Hay stock disponible)
     @Test
-    void noDebePrestarSiLectorInactivo() {
-        // Arrange
-        EstudianteRepository repo = new EstudianteRepository();
-        PrestamoService servicio = new PrestamoService(repo);
+    void debePrestarSiHayStockDisponible() {
+        // Arrange: Creamos un libro con stock 10
+        Libro libroConStock = new Libro(2, "Spring Boot", "Ana", "Web", 2025, 10);
+        when(libroRepositoryMock.buscarPorId(2)).thenReturn(libroConStock);
 
         // Act
-        boolean resultado = servicio.puedePrestar(1, false, 0);
+        boolean resultado = servicio.evaluarPrestamo(1, 2);
 
-        // Assert
-        assertFalse(resultado, "Debería retornar false porque el lector no está activo");
+        // Assert: Debería autorizar el préstamo
+        assertTrue(resultado, "Debería retornar true porque hay stock");
     }
 
-    // CP03: Límite de préstamos alcanzado (3 o más)
+    // CP03: El stock disminuye correctamente tras un préstamo exitoso
     @Test
-    void noDebePrestarSiTieneTresPrestamosActivos() {
-        // Arrange
-        EstudianteRepository repo = new EstudianteRepository();
-        PrestamoService servicio = new PrestamoService(repo);
+    void debeReducirElStockAlPrestar() {
+        // Arrange: Libro con stock 5
+        Libro libro = new Libro(3, "Testing", "Luis", "Pruebas", 2024, 5);
+        when(libroRepositoryMock.buscarPorId(3)).thenReturn(libro);
 
         // Act
-        boolean resultado = servicio.puedePrestar(1, true, 3);
+        servicio.evaluarPrestamo(1, 3);
 
-        // Assert
-        assertFalse(resultado, "Debería retornar false porque ya tiene 3 préstamos");
+        // Assert: El stock debe haber bajado a 4
+        assertEquals(4, libro.getStock(), "El stock debería haber disminuido en 1");
     }
 
-    // CP04: Préstamo exitoso (Todas las condiciones se cumplen)
+    // CP04: Libro no encontrado
     @Test
-    void debePrestarSiCumpleTodasLasCondiciones() {
-        // Arrange
-        EstudianteRepository repo = new EstudianteRepository();
-        PrestamoService servicio = new PrestamoService(repo);
+    void noDebePrestarSiElLibroNoExiste() {
+        // Arrange: Cuando busquen el ID 99, devolvemos null
+        when(libroRepositoryMock.buscarPorId(99)).thenReturn(null);
 
         // Act
-        boolean resultado = servicio.puedePrestar(1, true, 0);
+        boolean resultado = servicio.evaluarPrestamo(1, 99);
 
         // Assert
-        assertTrue(resultado, "Debería retornar true porque todo está correcto");
-    }
-
-    // CP05: Límite inferior de préstamos (2 activos)
-    @Test
-    void debePrestarSiTieneDosPrestamosActivos() {
-        // Arrange
-        EstudianteRepository repo = new EstudianteRepository();
-        PrestamoService servicio = new PrestamoService(repo);
-
-        // Act
-        boolean resultado = servicio.puedePrestar(1, true, 2);
-
-        // Assert
-        assertTrue(resultado, "Debería retornar true porque tiene menos de 3 préstamos");
+        assertFalse(resultado, "Debería retornar false porque el libro no existe");
     }
 }
