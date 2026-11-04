@@ -10,11 +10,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/libros")
 @CrossOrigin(origins = "*")
-public class LibroController { // <-- Nombre corregido
+public class LibroController {
 
     private final LibroService libroService;
 
-    // El constructor ahora coincide con el nombre de la clase
     public LibroController(LibroService libroService) {
         this.libroService = libroService;
     }
@@ -36,6 +35,14 @@ public class LibroController { // <-- Nombre corregido
     @PostMapping
     public Libro guardar(@RequestBody Libro libro) {
         return libroService.guardarLibro(libro);
+    }
+
+    // NUEVO MÉTODO PARA ACTUALIZAR (PUT)
+    @PutMapping("/{id}")
+    public Libro actualizar(@PathVariable int id, @RequestBody Libro libro) {
+        libro.setId(id); // Asegura que el ID sea el correcto
+        return libroService.guardarLibro(libro);
+        // Tu LibroService/Repository ya maneja la lógica: si el ID existe, actualiza.
     }
 
     @DeleteMapping("/{id}")
