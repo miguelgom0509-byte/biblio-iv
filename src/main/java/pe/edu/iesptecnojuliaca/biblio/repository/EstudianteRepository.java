@@ -5,40 +5,50 @@ import pe.edu.iesptecnojuliaca.biblio.model.Estudiante;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Repository
 public class EstudianteRepository {
 
-    // Usamos ArrayList para permitir agregar o eliminar estudiantes en el futuro
-    private final List<Estudiante> estudiantes = new ArrayList<>();
+    private final List<Estudiante> estudiantes = new CopyOnWriteArrayList<>();
 
-    // Inicializamos los datos en el constructor
     public EstudianteRepository() {
-        estudiantes.add(new Estudiante(1L, "Juan Perez", true));   // Estudiante Activo
-        estudiantes.add(new Estudiante(2L, "Maria Lopez", false)); // Estudiante Inactivo
-        estudiantes.add(new Estudiante(3L, "Carlos Ruiz", true));  // Estudiante Activo
+        // Estudiantes iniciales (cámbialos por los tuyos si lo necesitas)
+        estudiantes.add(new Estudiante(1, "Juan Pérez", "Desarrollo de Sistemas de Información"));
+        estudiantes.add(new Estudiante(2, "María Quispe", "Desarrollo de Sistemas de Información"));
+        estudiantes.add(new Estudiante(3, "Carlos Mamani", "Desarrollo de Sistemas de Información"));
     }
 
     public List<Estudiante> listar() {
-        return estudiantes;
+        return new ArrayList<>(estudiantes);
     }
 
-    // Usamos Optional para manejar de forma segura la búsqueda por ID
-    public Optional<Estudiante> buscarPorId(Long id) {
-        return estudiantes.stream()
-                .filter(e -> e.getId().equals(id))
-                .findFirst();
+    public Estudiante buscarPorId(int id) {
+        return estudiantes.stream().filter(e -> e.getId() == id).findFirst().orElse(null);
     }
 
-    // Método extra para guardar (por si lo necesitas después)
-    public Estudiante guardar(Estudiante estudiante) {
-        if (estudiante.getId() == null) {
-            // Generar ID autoincremental
-            Long nuevoId = estudiantes.stream().mapToLong(Estudiante::getId).max().orElse(0L) + 1;
-            estudiante.setId(nuevoId);
-            estudiantes.add(estudiante);
+    /**
+     * Agrega un estudiante nuevo con el siguiente id disponible.
+     * Lanza IllegalArgumentException (el GlobalExceptionHandler la convierte en un 400 con mensaje)
+     * si el nombre es muy corto o ya existe.
+     */
+    public synchronized Estudiante guardar(Estudiante estudiante) {
+        String nombre = estudiante.getNombre() == null ? "" : estudiante.getNombre().trim().replaceAll("\\s+", " ");
+        if (nombre.length() < 3) {
+            throw new IllegalArgumentException("El nombre debe tener al menos 3 caracteres");
         }
-        return estudiante;
+        boolean duplicado = estudiantes.stream().anyMatch(e -> e.getNombre() != null && e.getNombre().equalsIgnoreCase(nombre));
+        if (duplicado) {
+            throw new IllegalArgumentException("Ya existe un estudiante con ese nombre");
+        }
+
+        String carrera = estudiante.getCarrera() == null ? "" : estudiante.getCarrera().trim();
+
+        Estudiante nuevo = new Estudiante();
+        nuevo.setId(estudiantes.stream().mapToInt(Estudiante::getId).max().orElse(0) + 1);
+        nuevo.setNombre(nombre);
+        nuevo.setCarrera(carrera.isEmpty() ? null : carrera);
+        estudiantes.add(nuevo);
+        return nuevo;
     }
 }
