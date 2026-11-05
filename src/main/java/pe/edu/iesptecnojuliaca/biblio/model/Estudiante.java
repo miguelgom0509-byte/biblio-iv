@@ -1,26 +1,25 @@
 package pe.edu.iesptecnojuliaca.biblio.model;
 
 public class Estudiante {
-    private Long id;
+    private int id;
     private String nombre;
-    private boolean activo;
+    private String carrera; // opcional
 
     public Estudiante() {
     }
 
-    public Estudiante(Long id, String nombre, boolean activo) {
+    public Estudiante(int id, String nombre, String carrera) {
         this.id = id;
         this.nombre = nombre;
-        this.activo = activo;
+        this.carrera = carrera;
     }
 
-    // Getters y Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public boolean isActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo = activo; }
+    public String getCarrera() { return carrera; }
+    public void setCarrera(String carrera) { this.carrera = carrera; }
 }
