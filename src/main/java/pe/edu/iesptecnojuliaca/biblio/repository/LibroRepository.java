@@ -32,8 +32,8 @@ public class LibroRepository {
     /**
      * Crea (id == 0) o actualiza un libro.
      * - Crear: stock null -> 50; un stock 0 explícito se respeta.
-     * - Actualizar: solo cambia titulo, autor, categoria y anio.
-     *   El stock NO se toca (cambia solo por préstamos/devoluciones).
+     * - Actualizar: cambia titulo, autor, categoria y anio; el stock solo
+     *   se modifica si viene explícito (no nulo) en el JSON.
      * Devuelve null si el id a actualizar no existe (el controller debe responder 404).
      */
     public synchronized Libro guardar(Libro libro) {
@@ -52,6 +52,7 @@ public class LibroRepository {
         existente.setAutor(libro.getAutor());
         existente.setCategoria(libro.getCategoria());
         existente.setAnio(libro.getAnio());
+        if (libro.getStock() != null) existente.setStock(libro.getStock());
         return existente;
     }
 
