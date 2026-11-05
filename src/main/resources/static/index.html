@@ -503,13 +503,18 @@
         const btn = $('btnGuardarLibro');
         const idEditando = $('editLibroId').value;
 
+        // JSON.stringify convierte NaN en null, y eso es lo que el backend rechaza en campos numéricos.
+        // Por eso solo se envían números válidos.
+        const anioNum = parseInt($('nuevoAnio').value, 10);
+        const stockNum = parseInt($('nuevoStock').value, 10);
+
         const libroData = {
             titulo: $('nuevoTitulo').value.trim(),
             autor: $('nuevoAutor').value.trim(),
             categoria: $('nuevaCategoria').value.trim(),
-            anio: $('nuevoAnio').value.trim() ? parseInt($('nuevoAnio').value, 10) : 0,
-            stock: parseInt($('nuevoStock').value, 10)
+            anio: Number.isFinite(anioNum) ? anioNum : 0
         };
+        if (Number.isFinite(stockNum)) libroData.stock = stockNum;
 
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Guardando...';
