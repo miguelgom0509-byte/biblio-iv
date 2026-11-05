@@ -31,14 +31,16 @@ public class LibroController {
 
     @PostMapping
     public Libro guardar(@RequestBody Libro libro) {
+        libro.setId(0); // un POST siempre crea; ignora cualquier id enviado
         return libroService.guardarLibro(libro);
     }
 
-    // ESTO ES LO QUE HACE QUE EL LÁPIZ DE EDITAR FUNCIONE
+    // Editar (lápiz): mantiene el id de la URL y responde 404 si no existe
     @PutMapping("/{id}")
-    public Libro actualizar(@PathVariable int id, @RequestBody Libro libro) {
-        libro.setId(id); // Nos aseguramos de que mantenga el mismo ID
-        return libroService.guardarLibro(libro);
+    public ResponseEntity<Libro> actualizar(@PathVariable int id, @RequestBody Libro libro) {
+        libro.setId(id);
+        Libro actualizado = libroService.guardarLibro(libro);
+        return actualizado != null ? ResponseEntity.ok(actualizado) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
