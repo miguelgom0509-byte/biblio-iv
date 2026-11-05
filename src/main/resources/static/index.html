@@ -182,6 +182,10 @@
         .btn-sm { height: 38px; padding: 0 14px; font-size: 13px; }
 
         .loan-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start; }
+        .label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .link-btn { background: none; border: none; color: var(--primary); font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 8px; transition: .2s; }
+        .link-btn:hover { background: var(--primary-soft); }
+        [data-theme="dark"] .link-btn { color: #a5b4fc; }
         .preview-box { padding: 20px; min-height: 100%; }
         .preview-row { display: flex; gap: 18px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
         .stock-meter { height: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; margin: 6px 0; }
@@ -250,6 +254,7 @@
                 <div class="hero-actions">
                     <button class="btn btn-light" type="button" data-ir="catalogo"><i class="fa-solid fa-book"></i> Ver catálogo</button>
                     <button class="btn btn-light" type="button" data-ir="prestamos"><i class="fa-solid fa-hand-holding-hand"></i> Nuevo préstamo</button>
+                    <button class="btn btn-light" type="button" data-nuevo-estudiante><i class="fa-solid fa-user-plus"></i> Nuevo estudiante</button>
                 </div>
             </div>
             <svg viewBox="0 0 320 170" aria-hidden="true">
@@ -356,7 +361,10 @@
                 <div class="card-header"><h3 style="font-size:16px; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-file-signature" style="color:var(--primary);"></i> Nuevo Préstamo</h3></div>
                 <div style="padding:24px;">
                     <div class="form-group">
-                        <label for="idEstudiante">Estudiante solicitante</label>
+                        <div class="label-row">
+                            <label for="idEstudiante">Estudiante solicitante</label>
+                            <button class="link-btn" type="button" data-nuevo-estudiante><i class="fa-solid fa-user-plus"></i> Nuevo estudiante</button>
+                        </div>
                         <select id="idEstudiante"><option value="">Cargando estudiantes...</option></select>
                     </div>
                     <div class="form-group">
@@ -433,6 +441,32 @@
         <div class="modal-actions">
             <button class="btn btn-secondary" type="button" data-cerrar="modalLibro">Cancelar</button>
             <button class="btn btn-primary" type="button" id="btnGuardarLibro">Guardar Libro</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL NUEVO ESTUDIANTE ===== -->
+<div class="modal-overlay" id="modalEstudiante" role="dialog" aria-modal="true" aria-labelledby="estTitle">
+    <div class="modal" style="max-width:460px;">
+        <div class="modal-header">
+            <h2 id="estTitle">Nuevo estudiante</h2>
+            <button class="close-btn" type="button" data-cerrar="modalEstudiante" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="preview-row" style="justify-content:center;">
+            <span class="avatar" id="estAvatar" style="--h:240; width:72px; height:72px; font-size:24px;">?</span>
+        </div>
+        <div class="form-group">
+            <label for="estNombre">Nombre completo *</label>
+            <input type="text" id="estNombre" placeholder="Ej. María Quispe Mamani" maxlength="80" autocomplete="off">
+            <span class="field-error" id="err-estNombre"></span>
+        </div>
+        <div class="form-group">
+            <label for="estCarrera">Carrera o programa (opcional)</label>
+            <input type="text" id="estCarrera" placeholder="Ej. Desarrollo de Sistemas de Información" maxlength="80" autocomplete="off">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" type="button" data-cerrar="modalEstudiante">Cancelar</button>
+            <button class="btn btn-primary" type="button" id="btnGuardarEstudiante"><i class="fa-solid fa-user-plus"></i> Agregar estudiante</button>
         </div>
     </div>
 </div>
@@ -611,15 +645,82 @@
         }
     }
 
-    async function cargarEstudiantesBackend() {
+    // seleccionarId (opcional): estudiante que debe quedar elegido, por ejemplo el recién agregado
+    async function cargarEstudiantesBackend(seleccionarId) {
         try {
             estudiantesGlobales = await api('/estudiantes') || [];
             animarNumero($('stat-estudiantes'), estudiantesGlobales.length);
+
+            const select = $('idEstudiante');
+            const previo = select.value;
             const opciones = estudiantesGlobales
                 .map(e => `<option value="${esc(e.id)}">${esc(e.nombre)} (ID: ${esc(e.id)})</option>`).join('');
-            $('idEstudiante').innerHTML = '<option value="">Seleccione un estudiante...</option>' + opciones;
+            select.innerHTML = '<option value="">Seleccione un estudiante...</option>' + opciones;
+            select.value = (seleccionarId !== undefined && seleccionarId !== null) ? String(seleccionarId) : previo;
+            actualizarPreviewPrestamo();
         } catch (error) {
             $('idEstudiante').innerHTML = '<option value="">Error al cargar</option>';
+        }
+    }
+
+    // ---------- ESTUDIANTES: AGREGAR ----------
+    function actualizarAvatarEstudiante() {
+        const nombre = $('estNombre').value.trim();
+        const avatar = $('estAvatar');
+        avatar.textContent = nombre ? iniciales(nombre) : '?';
+        avatar.style.setProperty('--h', tono(nombre || 'estudiante'));
+    }
+
+    function abrirModalEstudiante() {
+        $('estNombre').value = '';
+        $('estCarrera').value = '';
+        $('estNombre').classList.remove('invalid');
+        $('err-estNombre').textContent = '';
+        actualizarAvatarEstudiante();
+        abrirModal('modalEstudiante');
+        $('estNombre').focus();
+    }
+
+    async function guardarEstudianteBackend() {
+        const input = $('estNombre');
+        const nombre = input.value.trim().replace(/\s+/g, ' ');
+        const carrera = $('estCarrera').value.trim();
+        const btn = $('btnGuardarEstudiante');
+
+        input.classList.remove('invalid');
+        $('err-estNombre').textContent = '';
+
+        if (nombre.length < 3) {
+            input.classList.add('invalid');
+            $('err-estNombre').textContent = 'Escribe el nombre completo (mínimo 3 letras)';
+            return;
+        }
+        if (estudiantesGlobales.some(e => String(e.nombre ?? '').trim().toLowerCase() === nombre.toLowerCase())) {
+            input.classList.add('invalid');
+            $('err-estNombre').textContent = 'Ya existe un estudiante con ese nombre';
+            return;
+        }
+
+        const datos = { nombre };
+        if (carrera) datos.carrera = carrera;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Guardando...';
+
+        try {
+            const nuevo = await api('/estudiantes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+            cerrarModal('modalEstudiante');
+            await cargarEstudiantesBackend(nuevo ? nuevo.id : undefined);
+            showToast(`Estudiante "${nombre}" agregado`);
+        } catch (error) {
+            showToast(`No se pudo agregar: ${error.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Agregar estudiante';
         }
     }
 
@@ -949,7 +1050,7 @@
 
         if (est) {
             html += `<div class="preview-row"><span class="avatar" style="--h:${tono(est.nombre)}; width:52px; height:52px; font-size:16px;">${esc(iniciales(est.nombre))}</span>
-                <div><strong>${esc(est.nombre)}</strong><br><span class="field-hint">Estudiante · ID ${esc(est.id)}</span></div></div>`;
+                <div><strong>${esc(est.nombre)}</strong><br><span class="field-hint">${esc(est.carrera || 'Estudiante')} · ID ${esc(est.id)}</span></div></div>`;
         }
         if (libro) {
             const s = stockDe(libro);
@@ -1052,6 +1153,10 @@
         $('btnConfirmarEliminar').addEventListener('click', confirmarEliminar);
         $('btnEvaluar').addEventListener('click', evaluarPrestamoBackend);
 
+        document.querySelectorAll('[data-nuevo-estudiante]').forEach(b => b.addEventListener('click', abrirModalEstudiante));
+        $('btnGuardarEstudiante').addEventListener('click', guardarEstudianteBackend);
+        $('estNombre').addEventListener('input', actualizarAvatarEstudiante);
+
         $('buscadorLibros').addEventListener('input', renderizarLibros);
         $('filtroStock').addEventListener('change', renderizarLibros);
         $('ordenLibros').addEventListener('change', renderizarLibros);
@@ -1102,6 +1207,7 @@
                 $('buscadorLibros').focus();
             }
             if (e.key === 'Enter' && $('modalLibro').classList.contains('active') && document.activeElement.tagName === 'INPUT') guardarLibroBackend();
+            if (e.key === 'Enter' && $('modalEstudiante').classList.contains('active') && document.activeElement.tagName === 'INPUT') guardarEstudianteBackend();
         });
 
         let vistaGuardada = 'grid';
