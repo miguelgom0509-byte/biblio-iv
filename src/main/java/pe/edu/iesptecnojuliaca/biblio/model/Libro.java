@@ -6,12 +6,12 @@ public class Libro {
     private String autor;
     private String categoria;
     private int anio;
-    private int stock; // El atributo que falta
+    private Integer stock; // Integer: null = "no enviado", 0 = agotado
 
     public Libro() {
     }
 
-    public Libro(int id, String titulo, String autor, String categoria, int anio, int stock) {
+    public Libro(int id, String titulo, String autor, String categoria, int anio, Integer stock) {
         this.id = id;
         this.titulo = titulo;
         this.autor = autor;
@@ -35,7 +35,6 @@ public class Libro {
     public int getAnio() { return anio; }
     public void setAnio(int anio) { this.anio = anio; }
 
-    // ¡ESTO ES LO QUE HACE QUE POSTMAN MUESTRE EL STOCK!
-    public int getStock() { return stock; }
-    public void setStock(int stock) { this.stock = stock; }
+    public Integer getStock() { return stock; }
+    public void setStock(Integer stock) { this.stock = stock; }
 }
