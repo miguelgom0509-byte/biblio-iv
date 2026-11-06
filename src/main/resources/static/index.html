@@ -6,12 +6,9 @@
     <title>BiblioTech | Sistema de Gestión</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Versiones FIJAS y probadas -->
     <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
-
     <style>
         :root{--primary:#4f46e5;--primary-hover:#4338ca;--primary-soft:#eef2ff;--bg-body:#f3f4f6;--bg-sidebar:#111827;--surface:#fff;--surface-2:#f9fafb;--text-main:#1f2937;--text-muted:#6b7280;--border:#e5e7eb;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--radius:14px;--shadow-sm:0 1px 2px 0 rgb(0 0 0/.05);--shadow-md:0 6px 12px -2px rgb(0 0 0/.12);--shadow-lg:0 18px 30px -6px rgb(0 0 0/.22)}
         [data-theme="dark"]{--bg-body:#0f172a;--surface:#1e293b;--surface-2:#162033;--primary-soft:#312e81;--text-main:#f1f5f9;--text-muted:#94a3b8;--border:#334155}
@@ -33,6 +30,10 @@
         .theme-toggle{padding:16px;border-top:1px solid rgba(255,255,255,.1)}
         .theme-btn{width:100%;padding:10px;border-radius:10px;border:1px solid #374151;background:transparent;color:#9ca3af;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:500;transition:.2s}
         .theme-btn:hover{background:rgba(255,255,255,.06);color:#fff}
+        .mode-badge{padding:10px 12px;background:rgba(255,255,255,.06);border-radius:10px;font-size:12px;color:#9ca3af;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+        .mode-badge span{flex:1;line-height:1.3}
+        .mode-badge .reset-btn{background:transparent;border:none;color:#9ca3af;cursor:pointer;padding:4px;border-radius:6px;transition:.2s}
+        .mode-badge .reset-btn:hover{background:rgba(255,255,255,.1);color:#fff}
 
         .main-content{flex:1;overflow-y:auto;padding:32px;position:relative}
         .page-section{animation:fadeIn .35s ease}
@@ -210,7 +211,8 @@
           .sidebar{width:100%;flex-direction:row;align-items:center;flex-wrap:wrap}
           .sidebar-header{border-bottom:none;padding:14px 16px}
           .nav-menu{flex-direction:row;padding:8px 16px;overflow-x:auto;order:3;width:100%;flex:none}
-          .theme-toggle{border-top:none;margin-left:auto;padding:8px 16px}
+          .theme-toggle{border-top:none;margin-left:auto;padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap}
+          .mode-badge{margin-bottom:0;flex:1}
           .main-content{padding:16px;overflow:visible}
           .form-row,.modal-body{grid-template-columns:1fr}
           .hero{padding:22px}.hero-text h2{font-size:22px}
@@ -222,7 +224,6 @@
 </head>
 <body>
 
-<!-- Mensaje inicial mientras carga React -->
 <div id="root">
     <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100vh;font-family:Inter,sans-serif;color:#6b7280;flex-direction:column;gap:16px">
         <div style="width:44px;height:44px;border:4px solid #e5e7eb;border-top-color:#4f46e5;border-radius:50%;animation:spin 1s linear infinite"></div>
@@ -231,7 +232,6 @@
     </div>
 </div>
 
-<!-- Handler global de errores: si algo falla, lo verás en pantalla -->
 <script>
     (function () {
       function mostrarError(msg, stack) {
@@ -244,35 +244,45 @@
           '<pre style="background:#fee;padding:16px;border-radius:8px;overflow:auto;white-space:pre-wrap;font-size:13px;border:1px solid #fecaca">' +
           String(msg).replace(/</g, '&lt;') +
           '\n\n' + String(stack || '').replace(/</g, '&lt;') +
-          '</pre>' +
-          '<p style="color:#6b7280;margin-top:16px">También abre la consola del navegador (F12) para más detalles.</p>' +
-          '</div>';
+          '</pre></div>';
       }
-      window.addEventListener('error', function (e) {
-        mostrarError(e.message, e.error && e.error.stack);
-      });
+      window.addEventListener('error', function (e) { mostrarError(e.message, e.error && e.error.stack); });
       window.addEventListener('unhandledrejection', function (e) {
         mostrarError('Promise rechazada: ' + (e.reason && e.reason.message || e.reason), e.reason && e.reason.stack);
       });
-      // Timeout: si después de 6s no hay sidebar, mostrar aviso
       setTimeout(function () {
         var root = document.getElementById('root');
         if (root && !root.querySelector('.sidebar') && !root.querySelector('pre')) {
-          mostrarError(
-            'React no se inicializó a tiempo.',
-            'Verifica tu conexión a internet (los scripts se cargan desde unpkg.com).\n' +
-            'Revisa que no haya bloqueadores de anuncios o políticas CSP bloqueando los CDN.'
-          );
+          mostrarError('React no se inicializó a tiempo.',
+            'Verifica tu conexión a internet (los scripts se cargan desde unpkg.com).');
         }
       }, 6000);
     })();
 </script>
 
-<!-- La app React (Babel procesa type="text/babel" automáticamente) -->
 <script type="text/babel">
     const { useState, useEffect, useMemo, useCallback, useRef, useContext, createContext } = React;
 
-    /* ---------- UTILIDADES ---------- */
+    /* ============================================================
+       1. CONFIGURACIÓN Y UTILIDADES
+       ============================================================ */
+    const MODO_API = 'auto';
+    const LS_DATA = 'biblio-data';
+    const LS_PORTADAS = 'biblio-portadas';
+    const LS_MODO = 'biblio-modo-efectivo';
+    const LS_TEMA = 'biblio-tema';
+    const LS_VISTA = 'biblio-vista';
+
+    let modoEfectivo = null;
+    const modoListeners = new Set();
+    function setModo(m) {
+      if (modoEfectivo === m) return;
+      modoEfectivo = m;
+      try { localStorage.setItem(LS_MODO, m); } catch (e) {}
+      modoListeners.forEach(function (fn) { fn(m); });
+    }
+    function suscribirModo(fn) { modoListeners.add(fn); return function () { modoListeners.delete(fn); }; }
+
     const hash = (s) => { let h = 0; s = String(s ?? ''); for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
     const tono = (t) => hash(t) % 360;
     const iniciales = (n) => { const p = String(n ?? '?').trim().split(/\s+/).slice(0, 2); return p.map(x => x.charAt(0).toUpperCase()).join('') || '?'; };
@@ -280,7 +290,7 @@
     const categoriaDe = (l) => (l.categoria && String(l.categoria).trim()) || 'Sin categoría';
     const iconoCategoria = (c) => {
       c = String(c ?? '').toLowerCase();
-      if (/program|c[oó]digo|software|java|python/.test(c)) return 'fa-code';
+      if (/program|c[oó]digo|software|java|python|algoritmo/.test(c)) return 'fa-code';
       if (/web|internet|html/.test(c)) return 'fa-globe';
       if (/prueba|test|calidad/.test(c)) return 'fa-vial-circle-check';
       if (/dato|base|sql/.test(c)) return 'fa-database';
@@ -292,20 +302,129 @@
       if (/arte|dise[nñ]o/.test(c)) return 'fa-palette';
       return 'fa-book';
     };
-    async function api(url, options) {
-      const res = await fetch(url, options);
-      const text = await res.text();
-      let data = null;
-      if (text) { try { data = JSON.parse(text); } catch (e) {} }
-      if (!res.ok) throw new Error((data && (data.message || data.mensaje)) || 'Error ' + res.status);
-      return data;
-    }
     const stockBadge = (s) => s <= 0
       ? { label: 'Agotado', cls: 'out' }
       : s <= 5 ? { label: s + ' (bajo)', cls: 'low' }
       : { label: String(s), cls: 'ok' };
 
-    /* ---------- CONTEXTOS ---------- */
+    /* ============================================================
+       2. CAPA DE DATOS: backend + fallback localStorage
+       ============================================================ */
+    function initStore() {
+      let store = null;
+      try { store = JSON.parse(localStorage.getItem(LS_DATA) || 'null'); } catch (e) {}
+      if (!store || !Array.isArray(store.libros)) {
+        store = {
+          libros: [
+            { id: 1, titulo: 'Cien Años de Soledad', autor: 'Gabriel García Márquez', categoria: 'Novela', anio: 1967, stock: 45 },
+            { id: 2, titulo: 'El Quijote de la Mancha', autor: 'Miguel de Cervantes', categoria: 'Novela', anio: 1605, stock: 8 },
+            { id: 3, titulo: 'Introducción a los Algoritmos', autor: 'Thomas H. Cormen', categoria: 'Programación', anio: 2009, stock: 12 },
+            { id: 4, titulo: 'Clean Code', autor: 'Robert C. Martin', categoria: 'Programación', anio: 2008, stock: 3 },
+            { id: 5, titulo: 'Sapiens', autor: 'Yuval Noah Harari', categoria: 'Historia', anio: 2011, stock: 20 },
+            { id: 6, titulo: 'El Principito', autor: 'Antoine de Saint-Exupéry', categoria: 'Literatura', anio: 1943, stock: 0 },
+            { id: 7, titulo: 'Estructuras de Datos y Algoritmos', autor: 'Mark Allen Weiss', categoria: 'Programación', anio: 2013, stock: 15 },
+            { id: 8, titulo: 'Redes de Computadoras', autor: 'Andrew S. Tanenbaum', categoria: 'Redes', anio: 2011, stock: 6 }
+          ],
+          estudiantes: [
+            { id: 1, nombre: 'María Quispe Mamani', carrera: 'Desarrollo de Sistemas de Información' },
+            { id: 2, nombre: 'Juan Pérez Rojas', carrera: 'Ingeniería de Software' }
+          ],
+          nextLibroId: 9,
+          nextEstudianteId: 3
+        };
+        try { localStorage.setItem(LS_DATA, JSON.stringify(store)); } catch (e) {}
+      }
+      return store;
+    }
+    function saveStore(store) {
+      try { localStorage.setItem(LS_DATA, JSON.stringify(store)); } catch (e) {}
+    }
+    function resetDemoData() {
+      try { localStorage.removeItem(LS_DATA); localStorage.removeItem(LS_PORTADAS); } catch (e) {}
+      initStore();
+    }
+
+    const localApi = {
+      async getLibros() { return initStore().libros; },
+      async crearLibro(data) {
+        const s = initStore();
+        const nuevo = Object.assign({ id: s.nextLibroId++ }, data);
+        s.libros.push(nuevo); saveStore(s);
+        return nuevo;
+      },
+      async editarLibro(id, data) {
+        const s = initStore();
+        const i = s.libros.findIndex(function (l) { return String(l.id) === String(id); });
+        if (i < 0) throw new Error('Libro no encontrado');
+        s.libros[i] = Object.assign({}, s.libros[i], data, { id: s.libros[i].id });
+        saveStore(s);
+        return s.libros[i];
+      },
+      async eliminarLibro(id) {
+        const s = initStore();
+        s.libros = s.libros.filter(function (l) { return String(l.id) !== String(id); });
+        saveStore(s);
+      },
+      async getEstudiantes() { return initStore().estudiantes; },
+      async crearEstudiante(data) {
+        const s = initStore();
+        const nuevo = Object.assign({ id: s.nextEstudianteId++ }, data);
+        s.estudiantes.push(nuevo); saveStore(s);
+        return nuevo;
+      },
+      async evaluarPrestamo(idEstudiante, idLibro) {
+        const s = initStore();
+        const est = s.estudiantes.find(function (e) { return String(e.id) === String(idEstudiante); });
+        if (!est) return { autorizado: false, mensaje: 'Estudiante no encontrado' };
+        const lib = s.libros.find(function (l) { return String(l.id) === String(idLibro); });
+        if (!lib) return { autorizado: false, mensaje: 'Libro no encontrado' };
+        if ((lib.stock || 0) <= 0) return { autorizado: false, mensaje: 'No hay ejemplares disponibles' };
+        lib.stock = (lib.stock || 0) - 1;
+        saveStore(s);
+        return { autorizado: true, mensaje: 'Préstamo autorizado: "' + lib.titulo + '" a ' + est.nombre };
+      }
+    };
+
+    async function routeLocal(url, options) {
+      const method = (options && options.method) || 'GET';
+      const body = options && options.body ? JSON.parse(options.body) : null;
+      if (url === '/libros' && method === 'GET') return localApi.getLibros();
+      if (url === '/libros' && method === 'POST') return localApi.crearLibro(body);
+      if (/^\/libros\/[^/]+$/.test(url) && method === 'PUT') return localApi.editarLibro(url.split('/')[2], body);
+      if (/^\/libros\/[^/]+$/.test(url) && method === 'DELETE') return localApi.eliminarLibro(url.split('/')[2]);
+      if (url === '/estudiantes' && method === 'GET') return localApi.getEstudiantes();
+      if (url === '/estudiantes' && method === 'POST') return localApi.crearEstudiante(body);
+      if (url.indexOf('/api/prestamos/evaluar') === 0) {
+        const q = new URLSearchParams(url.split('?')[1] || '');
+        return localApi.evaluarPrestamo(q.get('idEstudiante'), q.get('idLibro'));
+      }
+      throw new Error('Ruta no soportada en modo local: ' + url);
+    }
+
+    async function api(url, options) {
+      if (MODO_API === 'local') { setModo('local'); return routeLocal(url, options); }
+      if (MODO_API === 'auto' && modoEfectivo === 'local') return routeLocal(url, options);
+
+      try {
+        const res = await fetch(url, options);
+        const text = await res.text();
+        let data = null;
+        if (text) { try { data = JSON.parse(text); } catch (e) {} }
+        if (!res.ok) throw new Error((data && (data.message || data.mensaje)) || 'Error ' + res.status);
+        setModo('api');
+        return data;
+      } catch (err) {
+        if (MODO_API === 'auto' && modoEfectivo !== 'api') {
+          setModo('local');
+          return routeLocal(url, options);
+        }
+        throw err;
+      }
+    }
+
+    /* ============================================================
+       3. CONTEXTOS
+       ============================================================ */
     const ThemeContext = createContext(null);
     const ToastContext = createContext(null);
     const DataContext = createContext(null);
@@ -313,23 +432,25 @@
     const useToast = () => useContext(ToastContext);
     const useData = () => useContext(DataContext);
 
-    /* ---------- PROVIDERS ---------- */
+    /* ============================================================
+       4. PROVIDERS
+       ============================================================ */
     function ThemeProvider({ children }) {
-      const [dark, setDark] = useState(() => {
-        try { return localStorage.getItem('biblio-tema') === 'dark'; } catch (e) { return false; }
+      const [dark, setDark] = useState(function () {
+        try { return localStorage.getItem(LS_TEMA) === 'dark'; } catch (e) { return false; }
       });
-      useEffect(() => {
+      useEffect(function () {
         const html = document.documentElement;
         if (dark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
-        try { localStorage.setItem('biblio-tema', dark ? 'dark' : 'light'); } catch (e) {}
+        try { localStorage.setItem(LS_TEMA, dark ? 'dark' : 'light'); } catch (e) {}
       }, [dark]);
-      return <ThemeContext.Provider value={{ dark, toggle: () => setDark(d => !d) }}>{children}</ThemeContext.Provider>;
+      return <ThemeContext.Provider value={{ dark: dark, toggle: function () { setDark(function (d) { return !d; }); } }}>{children}</ThemeContext.Provider>;
     }
 
     function ToastProvider({ children }) {
       const [toasts, setToasts] = useState([]);
       const idRef = useRef(0);
-      const show = useCallback((message, type) => {
+      const show = useCallback(function (message, type) {
         type = type || 'success';
         const id = ++idRef.current;
         setToasts(function (t) { return t.concat([{ id: id, message: message, type: type }]); });
@@ -339,7 +460,7 @@
         }, 3500);
       }, []);
       return (
-        <ToastContext.Provider value={{ show }}>
+        <ToastContext.Provider value={{ show: show }}>
           {children}
           <div className="toast-container" aria-live="polite">
             {toasts.map(function (t) {
@@ -362,14 +483,14 @@
       const [loadingLibros, setLoadingLibros] = useState(true);
       const [errorLibros, setErrorLibros] = useState(null);
       const [portadas, setPortadas] = useState(function () {
-        try { return JSON.parse(localStorage.getItem('biblio-portadas') || '{}') || {}; } catch (e) { return {}; }
+        try { return JSON.parse(localStorage.getItem(LS_PORTADAS) || '{}') || {}; } catch (e) { return {}; }
       });
 
       const guardarPortada = useCallback(function (id, url) {
         setPortadas(function (prev) {
           const next = Object.assign({}, prev);
           if (url) next[id] = url; else delete next[id];
-          try { localStorage.setItem('biblio-portadas', JSON.stringify(next)); } catch (e) {}
+          try { localStorage.setItem(LS_PORTADAS, JSON.stringify(next)); } catch (e) {}
           return next;
         });
       }, []);
@@ -450,7 +571,9 @@
       return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
     }
 
-    /* ---------- UI BÁSICA ---------- */
+    /* ============================================================
+       5. UI BÁSICA
+       ============================================================ */
     function AnimatedNumber({ value }) {
       const [display, setDisplay] = useState(value);
       const prevRef = useRef(value);
@@ -520,10 +643,19 @@
       );
     }
 
-    /* ---------- SIDEBAR ---------- */
+    /* ============================================================
+       6. SIDEBAR (con indicador de modo)
+       ============================================================ */
     function Sidebar({ tab, setTab }) {
       const { libros, prestamos } = useData();
       const { dark, toggle } = useTheme();
+      const [modo, setModoState] = useState(modoEfectivo);
+
+      useEffect(function () {
+        setModoState(modoEfectivo);
+        return suscribirModo(setModoState);
+      }, []);
+
       const items = [
         { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard' },
         { id: 'catalogo', icon: 'fa-book', label: 'Catálogo', badge: libros.length },
@@ -550,6 +682,19 @@
             })}
           </nav>
           <div className="theme-toggle">
+            <div className="mode-badge">
+              <i className={'fa-solid fa-database'} style={{ color: modo === 'api' ? '#10b981' : '#f59e0b' }}></i>
+              <span>{modo === 'api' ? 'Backend conectado' : 'Modo local (navegador)'}</span>
+              <button type="button" className="reset-btn" title="Restaurar datos demo"
+                onClick={function () {
+                  if (window.confirm('¿Restaurar los datos de demostración? Se perderán los cambios locales.')) {
+                    resetDemoData();
+                    window.location.reload();
+                  }
+                }}>
+                <i className="fa-solid fa-rotate-left"></i>
+              </button>
+            </div>
             <button className="theme-btn" type="button" onClick={toggle}>
               <i className={'fa-solid ' + (dark ? 'fa-sun' : 'fa-moon')}></i>
               <span>{dark ? 'Modo Claro' : 'Modo Oscuro'}</span>
@@ -559,7 +704,9 @@
       );
     }
 
-    /* ---------- DASHBOARD ---------- */
+    /* ============================================================
+       7. DASHBOARD
+       ============================================================ */
     function HeroArt() {
       return (
         <svg viewBox="0 0 320 170" aria-hidden="true">
@@ -716,7 +863,9 @@
       );
     }
 
-    /* ---------- CATÁLOGO ---------- */
+    /* ============================================================
+       8. CATÁLOGO
+       ============================================================ */
     function Toolbar({ search, onSearch, filtro, onFiltro, orden, onOrden, vista, onVista }) {
       const inputRef = useRef(null);
       useEffect(function () {
@@ -1087,7 +1236,7 @@
       const [filtro, setFiltro] = useState('');
       const [orden, setOrden] = useState('id');
       const [vista, setVista] = useState(function () {
-        try { return localStorage.getItem('biblio-vista') === 'tabla' ? 'tabla' : 'grid'; } catch (e) { return 'grid'; }
+        try { return localStorage.getItem(LS_VISTA) === 'tabla' ? 'tabla' : 'grid'; } catch (e) { return 'grid'; }
       });
       const [categoriaActiva, setCategoriaActiva] = useState('');
       const [bookModal, setBookModal] = useState({ open: false, book: null });
@@ -1098,7 +1247,7 @@
         return function () { clearTimeout(t); };
       }, [searchInput]);
 
-      useEffect(function () { try { localStorage.setItem('biblio-vista', vista); } catch (e) {} }, [vista]);
+      useEffect(function () { try { localStorage.setItem(LS_VISTA, vista); } catch (e) {} }, [vista]);
 
       const categorias = useMemo(function () {
         const conteo = {};
@@ -1254,7 +1403,9 @@
       );
     }
 
-    /* ---------- PRÉSTAMOS ---------- */
+    /* ============================================================
+       9. PRÉSTAMOS
+       ============================================================ */
     function LoanPreview({ studentId, bookId }) {
       const { libros, estudiantes } = useData();
       const est = estudiantes.find(function (e) { return String(e.id) === String(studentId); });
@@ -1430,7 +1581,9 @@
       );
     }
 
-    /* ---------- ERROR BOUNDARY ---------- */
+    /* ============================================================
+       10. ERROR BOUNDARY
+       ============================================================ */
     class ErrorBoundary extends React.Component {
       constructor(props) { super(props); this.state = { error: null }; }
       static getDerivedStateFromError(error) { return { error: error }; }
@@ -1450,7 +1603,9 @@
       }
     }
 
-    /* ---------- APP ---------- */
+    /* ============================================================
+       11. APP
+       ============================================================ */
     function App() {
       const { estudiantes, crearEstudiante } = useData();
       const [tab, setTabState] = useState(function () {
@@ -1511,8 +1666,14 @@
       );
     }
 
-    /* ---------- BOOT ---------- */
+    /* ============================================================
+       12. BOOT
+       ============================================================ */
     try {
+      // Inicializar store demo en el primer arranque
+      initStore();
+      setModo(MODO_API === 'local' ? 'local' : null);
+
       ReactDOM.createRoot(document.getElementById('root')).render(
         <ThemeProvider>
           <ToastProvider>
