@@ -85,16 +85,18 @@
         .cover-icon{position:absolute;top:14px;right:14px;font-size:26px;opacity:.85}
         .cover-title{position:relative;z-index:1;font-weight:800;line-height:1.15;font-size:15px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 3px rgba(0,0,0,.3)}
         .cover-author{position:relative;z-index:1;font-size:11px;opacity:.88;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}
+        .cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;background:#fff}
         .cover-sm{width:40px;padding:0;justify-content:center;align-items:center;border-radius:3px 6px 6px 3px;flex-shrink:0}
         .cover-sm .cover-title,.cover-sm .cover-author,.cover-sm .cover-spine{display:none}
         .cover-sm .cover-icon{position:static;font-size:15px;z-index:1}
+        .cover-sm img{z-index:2}
         .cover-md{width:54px;padding:6px 4px 6px 9px;flex-shrink:0}
         .cover-md .cover-title{font-size:7px;-webkit-line-clamp:2}
         .cover-md .cover-author{display:none}
         .cover-md .cover-icon{font-size:11px;top:6px;right:6px}
         .cover-md .cover-spine{width:5px}
         .cover-lg{width:150px}
+        .cover-badge{position:absolute;top:6px;right:6px;z-index:3;background:rgba(0,0,0,.55);color:#fff;border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;display:flex;align-items:center;gap:3px}
 
         .toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:14px}
         .search-box{position:relative;flex:1;min-width:220px}
@@ -240,10 +242,8 @@
         root.innerHTML =
           '<div style="padding:40px;font-family:system-ui,sans-serif;max-width:900px;margin:0 auto;color:#1f2937">' +
           '<h2 style="color:#e11d48;margin-bottom:12px">⚠️ Error al cargar la aplicación</h2>' +
-          '<p style="color:#6b7280;margin-bottom:16px">Copia el mensaje de abajo para diagnosticar el problema:</p>' +
           '<pre style="background:#fee;padding:16px;border-radius:8px;overflow:auto;white-space:pre-wrap;font-size:13px;border:1px solid #fecaca">' +
-          String(msg).replace(/</g, '&lt;') +
-          '\n\n' + String(stack || '').replace(/</g, '&lt;') +
+          String(msg).replace(/</g, '&lt;') + '\n\n' + String(stack || '').replace(/</g, '&lt;') +
           '</pre></div>';
       }
       window.addEventListener('error', function (e) { mostrarError(e.message, e.error && e.error.stack); });
@@ -253,8 +253,7 @@
       setTimeout(function () {
         var root = document.getElementById('root');
         if (root && !root.querySelector('.sidebar') && !root.querySelector('pre')) {
-          mostrarError('React no se inicializó a tiempo.',
-            'Verifica tu conexión a internet (los scripts se cargan desde unpkg.com).');
+          mostrarError('React no se inicializó a tiempo.', 'Verifica tu conexión a internet.');
         }
       }, 6000);
     })();
@@ -308,32 +307,71 @@
       : { label: String(s), cls: 'ok' };
 
     /* ============================================================
-       2. CAPA DE DATOS: backend + fallback localStorage
+       2. RESOLUCIÓN DE PORTADAS (Open Library)
+       ============================================================
+       Prioridad:
+       1. book.portada  (URL explícita guardada en el libro)
+       2. portadas[book.id]  (legacy, localStorage)
+       3. book.isbn → Open Library
+       4. null → fallback a portada generada
+    */
+    function normalizarIsbn(isbn) {
+      return String(isbn || '').replace(/[^0-9Xx]/g, '').toUpperCase();
+    }
+    function portadaPorIsbn(isbn, size) {
+      const n = normalizarIsbn(isbn);
+      if (!n) return '';
+      const s = size === 'sm' ? 'S' : size === 'md' ? 'M' : 'L';
+      return 'https://covers.openlibrary.org/b/isbn/' + n + '-' + s + '.jpg?default=false';
+    }
+    function resolverPortada(book, portadas, size) {
+      if (!book) return '';
+      if (book.portada) return book.portada;
+      if (portadas && portadas[book.id]) return portadas[book.id];
+      if (book.isbn) return portadaPorIsbn(book.isbn, size);
+      return '';
+    }
+
+    /* ============================================================
+       3. CAPA DE DATOS
        ============================================================ */
+    function freshStore() {
+      return {
+        seedVersion: 2,
+        libros: [
+          { id: 1, titulo: 'Cien Años de Soledad', autor: 'Gabriel García Márquez', categoria: 'Novela', anio: 1967, stock: 45, isbn: '9780307474728' },
+          { id: 2, titulo: 'Don Quijote de la Mancha', autor: 'Miguel de Cervantes', categoria: 'Novela', anio: 1605, stock: 8, isbn: '9788420412146' },
+          { id: 3, titulo: 'Introducción a los Algoritmos', autor: 'Thomas H. Cormen', categoria: 'Programación', anio: 2009, stock: 12, isbn: '9780262033848' },
+          { id: 4, titulo: 'Clean Code', autor: 'Robert C. Martin', categoria: 'Programación', anio: 2008, stock: 3, isbn: '9780132350884' },
+          { id: 5, titulo: 'Sapiens', autor: 'Yuval Noah Harari', categoria: 'Historia', anio: 2011, stock: 20, isbn: '9780062316097' },
+          { id: 6, titulo: 'El Principito', autor: 'Antoine de Saint-Exupéry', categoria: 'Literatura', anio: 1943, stock: 0, isbn: '9780156012195' },
+          { id: 7, titulo: 'Estructuras de Datos y Algoritmos', autor: 'Mark Allen Weiss', categoria: 'Programación', anio: 2013, stock: 15, isbn: '9780137647316' },
+          { id: 8, titulo: 'Redes de Computadoras', autor: 'Andrew S. Tanenbaum', categoria: 'Redes', anio: 2011, stock: 6, isbn: '9780132126953' }
+        ],
+        estudiantes: [
+          { id: 1, nombre: 'María Quispe Mamani', carrera: 'Desarrollo de Sistemas de Información' },
+          { id: 2, nombre: 'Juan Pérez Rojas', carrera: 'Ingeniería de Software' }
+        ],
+        nextLibroId: 9,
+        nextEstudianteId: 3
+      };
+    }
+
     function initStore() {
       let store = null;
       try { store = JSON.parse(localStorage.getItem(LS_DATA) || 'null'); } catch (e) {}
       if (!store || !Array.isArray(store.libros)) {
-        store = {
-          libros: [
-            { id: 1, titulo: 'Cien Años de Soledad', autor: 'Gabriel García Márquez', categoria: 'Novela', anio: 1967, stock: 45 },
-            { id: 2, titulo: 'El Quijote de la Mancha', autor: 'Miguel de Cervantes', categoria: 'Novela', anio: 1605, stock: 8 },
-            { id: 3, titulo: 'Introducción a los Algoritmos', autor: 'Thomas H. Cormen', categoria: 'Programación', anio: 2009, stock: 12 },
-            { id: 4, titulo: 'Clean Code', autor: 'Robert C. Martin', categoria: 'Programación', anio: 2008, stock: 3 },
-            { id: 5, titulo: 'Sapiens', autor: 'Yuval Noah Harari', categoria: 'Historia', anio: 2011, stock: 20 },
-            { id: 6, titulo: 'El Principito', autor: 'Antoine de Saint-Exupéry', categoria: 'Literatura', anio: 1943, stock: 0 },
-            { id: 7, titulo: 'Estructuras de Datos y Algoritmos', autor: 'Mark Allen Weiss', categoria: 'Programación', anio: 2013, stock: 15 },
-            { id: 8, titulo: 'Redes de Computadoras', autor: 'Andrew S. Tanenbaum', categoria: 'Redes', anio: 2011, stock: 6 }
-          ],
-          estudiantes: [
-            { id: 1, nombre: 'María Quispe Mamani', carrera: 'Desarrollo de Sistemas de Información' },
-            { id: 2, nombre: 'Juan Pérez Rojas', carrera: 'Ingeniería de Software' }
-          ],
-          nextLibroId: 9,
-          nextEstudianteId: 3
-        };
+        store = freshStore();
         try { localStorage.setItem(LS_DATA, JSON.stringify(store)); } catch (e) {}
+        return store;
       }
+      // Migración: agregar ISBNs a los libros semilla si faltan
+      const SEED_ISBNS = { 1:'9780307474728', 2:'9788420412146', 3:'9780262033848', 4:'9780132350884', 5:'9780062316097', 6:'9780156012195', 7:'9780137647316', 8:'9780132126953' };
+      let changed = false;
+      store.libros.forEach(function (b) {
+        if (!b.isbn && SEED_ISBNS[b.id]) { b.isbn = SEED_ISBNS[b.id]; changed = true; }
+      });
+      if (changed) { try { localStorage.setItem(LS_DATA, JSON.stringify(store)); } catch (e) {} }
       return store;
     }
     function saveStore(store) {
@@ -404,7 +442,6 @@
     async function api(url, options) {
       if (MODO_API === 'local') { setModo('local'); return routeLocal(url, options); }
       if (MODO_API === 'auto' && modoEfectivo === 'local') return routeLocal(url, options);
-
       try {
         const res = await fetch(url, options);
         const text = await res.text();
@@ -423,7 +460,7 @@
     }
 
     /* ============================================================
-       3. CONTEXTOS
+       4. CONTEXTOS
        ============================================================ */
     const ThemeContext = createContext(null);
     const ToastContext = createContext(null);
@@ -433,7 +470,7 @@
     const useData = () => useContext(DataContext);
 
     /* ============================================================
-       4. PROVIDERS
+       5. PROVIDERS
        ============================================================ */
     function ThemeProvider({ children }) {
       const [dark, setDark] = useState(function () {
@@ -572,7 +609,7 @@
     }
 
     /* ============================================================
-       5. UI BÁSICA
+       6. UI BÁSICA
        ============================================================ */
     function AnimatedNumber({ value }) {
       const [display, setDisplay] = useState(value);
@@ -597,15 +634,33 @@
     function BookCover({ book, size, overrideUrl }) {
       size = size || 'md';
       const { portadas } = useData();
-      const url = overrideUrl !== undefined ? overrideUrl : (portadas[book.id] || '');
+      const [failed, setFailed] = useState(false);
+
+      const url = overrideUrl !== undefined
+        ? overrideUrl
+        : resolverPortada(book, portadas, size);
+
+      useEffect(function () { setFailed(false); }, [url]);
+
+      const showImg = url && !failed;
       const style = {}; style['--h'] = tono(book.titulo || book.id);
+
       return (
         <div className={'cover cover-' + size} style={style}>
           <span className="cover-spine"></span>
           <i className={'fa-solid ' + iconoCategoria(book.categoria) + ' cover-icon'}></i>
           <span className="cover-title">{book.titulo || 'Sin título'}</span>
           <span className="cover-author">{book.autor || ''}</span>
-          {url ? <img src={url} alt={'Portada de ' + book.titulo} loading="lazy" referrerPolicy="no-referrer" onError={function (e) { e.currentTarget.remove(); }} /> : null}
+          {showImg ? (
+            <img
+              src={url}
+              alt={'Portada de ' + (book.titulo || '')}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              onError={function () { setFailed(true); }}
+              onLoad={function (e) { if (e.currentTarget.naturalWidth < 10) setFailed(true); }}
+            />
+          ) : null}
         </div>
       );
     }
@@ -644,17 +699,13 @@
     }
 
     /* ============================================================
-       6. SIDEBAR (con indicador de modo)
+       7. SIDEBAR
        ============================================================ */
     function Sidebar({ tab, setTab }) {
       const { libros, prestamos } = useData();
       const { dark, toggle } = useTheme();
       const [modo, setModoState] = useState(modoEfectivo);
-
-      useEffect(function () {
-        setModoState(modoEfectivo);
-        return suscribirModo(setModoState);
-      }, []);
+      useEffect(function () { setModoState(modoEfectivo); return suscribirModo(setModoState); }, []);
 
       const items = [
         { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard' },
@@ -683,7 +734,7 @@
           </nav>
           <div className="theme-toggle">
             <div className="mode-badge">
-              <i className={'fa-solid fa-database'} style={{ color: modo === 'api' ? '#10b981' : '#f59e0b' }}></i>
+              <i className="fa-solid fa-database" style={{ color: modo === 'api' ? '#10b981' : '#f59e0b' }}></i>
               <span>{modo === 'api' ? 'Backend conectado' : 'Modo local (navegador)'}</span>
               <button type="button" className="reset-btn" title="Restaurar datos demo"
                 onClick={function () {
@@ -705,7 +756,7 @@
     }
 
     /* ============================================================
-       7. DASHBOARD
+       8. DASHBOARD
        ============================================================ */
     function HeroArt() {
       return (
@@ -864,7 +915,7 @@
     }
 
     /* ============================================================
-       8. CATÁLOGO
+       9. CATÁLOGO
        ============================================================ */
     function Toolbar({ search, onSearch, filtro, onFiltro, orden, onOrden, vista, onVista }) {
       const inputRef = useRef(null);
@@ -1036,27 +1087,79 @@
       );
     }
 
+    /* ============================================================
+       10. MODAL LIBRO (con búsqueda de portada)
+       ============================================================ */
+    function imagenExiste(url) {
+      return new Promise(function (resolve) {
+        const img = new Image();
+        img.onload = function () { resolve(img.naturalWidth > 10 && img.naturalHeight > 10); };
+        img.onerror = function () { resolve(false); };
+        img.src = url;
+      });
+    }
+
+    async function buscarPortadaOpenLibrary(form) {
+      // 1. Si hay ISBN, comprobamos directamente
+      if (form.isbn && normalizarIsbn(form.isbn)) {
+        const urlIsbn = 'https://covers.openlibrary.org/b/isbn/' + normalizarIsbn(form.isbn) + '-L.jpg?default=false';
+        if (await imagenExiste(urlIsbn)) return urlIsbn;
+      }
+      // 2. Buscar por título + autor
+      if (!form.titulo || !form.titulo.trim()) return null;
+      const q = new URLSearchParams();
+      q.set('title', form.titulo.trim());
+      q.set('limit', '1');
+      q.set('fields', 'cover_i');
+      if (form.autor && form.autor.trim()) q.set('author', form.autor.trim());
+      const res = await fetch('https://openlibrary.org/search.json?' + q.toString());
+      if (!res.ok) throw new Error('Open Library respondió ' + res.status);
+      const data = await res.json();
+      if (data.docs && data.docs[0] && data.docs[0].cover_i) {
+        return 'https://covers.openlibrary.org/b/id/' + data.docs[0].cover_i + '-L.jpg';
+      }
+      return null;
+    }
+
     function BookModal({ open, onClose, book, onSave }) {
       const isEdit = !!(book && book.id);
       const { portadas } = useData();
-      const [form, setForm] = useState({ titulo: '', autor: '', categoria: '', anio: '', stock: 50, portada: '' });
+      const [form, setForm] = useState({ titulo: '', autor: '', categoria: '', anio: '', stock: 50, portada: '', isbn: '' });
       const [errors, setErrors] = useState({});
       const [saving, setSaving] = useState(false);
+      const [buscando, setBuscando] = useState(false);
 
       useEffect(function () {
         if (!open) return;
         if (isEdit) {
           setForm({
             titulo: book.titulo || '', autor: book.autor || '', categoria: book.categoria || '',
-            anio: book.anio || '', stock: stockDe(book), portada: portadas[book.id] || ''
+            anio: book.anio || '', stock: stockDe(book),
+            portada: book.portada || (portadas[book.id] || ''),
+            isbn: book.isbn || ''
           });
         } else {
-          setForm({ titulo: '', autor: '', categoria: '', anio: '', stock: 50, portada: '' });
+          setForm({ titulo: '', autor: '', categoria: '', anio: '', stock: 50, portada: '', isbn: '' });
         }
         setErrors({});
       }, [open, book, isEdit, portadas]);
 
       function set(k, v) { setForm(function (f) { const n = Object.assign({}, f); n[k] = v; return n; }); }
+
+      async function autobuscarPortada() {
+        setErrors(function (e) { const n = Object.assign({}, e); delete n.portada; return n; });
+        setBuscando(true);
+        try {
+          const url = await buscarPortadaOpenLibrary(form);
+          if (url) {
+            set('portada', url);
+          } else {
+            setErrors(function (e) { return Object.assign({}, e, { portada: 'No se encontró portada. Prueba con otro título o pega una URL manualmente.' }); });
+          }
+        } catch (err) {
+          setErrors(function (e) { return Object.assign({}, e, { portada: 'Error de búsqueda: ' + err.message }); });
+        } finally { setBuscando(false); }
+      }
 
       function validar() {
         const e = {};
@@ -1087,7 +1190,11 @@
             anio: Number.isFinite(parseInt(form.anio, 10)) ? parseInt(form.anio, 10) : 0,
             stock: parseInt(form.stock, 10)
           };
-          await onSave(payload, form.portada, isEdit ? book.id : null);
+          if (form.portada.trim()) payload.portada = form.portada.trim();
+          else payload.portada = '';
+          if (form.isbn.trim()) payload.isbn = normalizarIsbn(form.isbn);
+          else payload.isbn = '';
+          await onSave(payload, null, isEdit ? book.id : null);
           onClose();
         } finally { setSaving(false); }
       }
@@ -1096,16 +1203,26 @@
         id: (book && book.id) || 'nuevo',
         titulo: form.titulo.trim() || 'Título del libro',
         autor: form.autor.trim() || 'Autor',
-        categoria: form.categoria
+        categoria: form.categoria,
+        portada: form.portada.trim(),
+        isbn: form.isbn.trim()
       };
-      const validUrl = /^https?:\/\//i.test(form.portada) ? form.portada : '';
+      const hasPortada = !!(form.portada.trim());
 
       return (
         <Modal open={open} onClose={onClose} title={isEdit ? 'Editar Libro' : 'Agregar Nuevo Libro'} titleId="modal-title">
           <div className="modal-body">
             <div className="modal-preview">
-              <BookCover book={previewBook} size="lg" overrideUrl={validUrl} />
-              <span className="field-hint" style={{ textAlign: 'center' }}>Vista previa de la portada</span>
+              <BookCover book={previewBook} size="lg" overrideUrl={previewBook.portada || (previewBook.isbn ? portadaPorIsbn(previewBook.isbn, 'lg') : '')} />
+              <span className="field-hint" style={{ textAlign: 'center' }}>
+                {hasPortada || previewBook.isbn ? 'Portada cargada' : 'Vista previa de la portada'}
+              </span>
+              <button className="btn btn-secondary btn-sm" type="button" onClick={autobuscarPortada} disabled={buscando}
+                style={{ width: '100%' }}>
+                {buscando
+                  ? <span><i className="fa-solid fa-spinner spinner"></i> Buscando...</span>
+                  : <span><i className="fa-solid fa-magnifying-glass"></i> Buscar portada</span>}
+              </button>
             </div>
             <div>
               <div className="form-group">
@@ -1122,10 +1239,17 @@
                   maxLength={100} placeholder="Ej. Gabriel García Márquez" />
                 {errors.autor ? <span className="field-error">{errors.autor}</span> : null}
               </div>
-              <div className="form-group">
-                <label htmlFor="f-categoria">Categoría</label>
-                <input id="f-categoria" type="text" value={form.categoria}
-                  onChange={function (e) { set('categoria', e.target.value); }} maxLength={60} placeholder="Ej. Novela" />
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="f-categoria">Categoría</label>
+                  <input id="f-categoria" type="text" value={form.categoria}
+                    onChange={function (e) { set('categoria', e.target.value); }} maxLength={60} placeholder="Ej. Novela" />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="f-isbn">ISBN (opcional)</label>
+                  <input id="f-isbn" type="text" value={form.isbn}
+                    onChange={function (e) { set('isbn', e.target.value); }} maxLength={20} placeholder="Ej. 9780132350884" />
+                </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
@@ -1142,12 +1266,14 @@
                 </div>
               </div>
               <div className="form-group">
-                <label htmlFor="f-portada">Imagen de portada (URL, opcional)</label>
+                <label htmlFor="f-portada">URL de portada (opcional)</label>
                 <input id="f-portada" className={errors.portada ? 'invalid' : ''} type="url"
                   value={form.portada} onChange={function (e) { set('portada', e.target.value); }}
-                  placeholder="https://... (si la dejas vacía se genera una portada)" />
+                  placeholder="https://... (se autocompleta si buscas)" />
                 {errors.portada ? <span className="field-error">{errors.portada}</span> : null}
-                <span className="field-hint">La imagen se guarda solo en este navegador.</span>
+                <span className="field-hint">
+                  Escribe un ISBN y pulsa "Buscar portada", o pega una URL manualmente. Si no hay portada, se genera una automáticamente.
+                </span>
               </div>
             </div>
           </div>
@@ -1167,9 +1293,7 @@
       const [error, setError] = useState('');
       const [saving, setSaving] = useState(false);
 
-      useEffect(function () {
-        if (open) { setNombre(''); setCarrera(''); setError(''); }
-      }, [open]);
+      useEffect(function () { if (open) { setNombre(''); setCarrera(''); setError(''); } }, [open]);
 
       async function submit() {
         const n = nombre.trim().replace(/\s+/g, ' ');
@@ -1178,12 +1302,9 @@
           setError('Ya existe un estudiante con ese nombre'); return;
         }
         setSaving(true);
-        try {
-          await onSave(n, carrera.trim());
-          onClose();
-        } catch (err) {
-          setError(err.message || 'No se pudo agregar');
-        } finally { setSaving(false); }
+        try { await onSave(n, carrera.trim()); onClose(); }
+        catch (err) { setError(err.message || 'No se pudo agregar'); }
+        finally { setSaving(false); }
       }
 
       return (
@@ -1281,16 +1402,15 @@
         return lista.slice().sort(comparadores[orden] || comparadores.id);
       }, [data.libros, searchQuery, categoriaActiva, filtro, orden]);
 
-      async function handleSave(payload, portada, idEditando) {
+      async function handleSave(payload, _portada, idEditando) {
         try {
-          let saved;
           if (idEditando) {
-            saved = await data.editarLibro(idEditando, payload);
-            data.guardarPortada(idEditando, portada);
+            await data.editarLibro(idEditando, payload);
+            // Limpiar legacy portada (ya está dentro del libro)
+            if (data.portadas[idEditando]) data.guardarPortada(idEditando, '');
             toast.show('Libro actualizado exitosamente');
           } else {
-            saved = await data.crearLibro(payload);
-            if (saved && saved.id) data.guardarPortada(saved.id, portada);
+            await data.crearLibro(payload);
             toast.show('Libro guardado exitosamente');
           }
         } catch (err) {
@@ -1304,7 +1424,7 @@
         setConfirm(function (c) { return Object.assign({}, c, { confirming: true }); });
         try {
           await data.eliminarLibro(confirm.book.id);
-          data.guardarPortada(confirm.book.id, '');
+          if (data.portadas[confirm.book.id]) data.guardarPortada(confirm.book.id, '');
           toast.show('Libro eliminado correctamente');
           setConfirm({ open: false, book: null, confirming: false });
         } catch (err) {
@@ -1363,9 +1483,7 @@
               <i className="fa-solid fa-triangle-exclamation"></i>
               {data.errorLibros}
               <div style={{ marginTop: 14 }}>
-                <button className="btn btn-secondary btn-sm" type="button" onClick={data.cargarLibros}>
-                  Reintentar
-                </button>
+                <button className="btn btn-secondary btn-sm" type="button" onClick={data.cargarLibros}>Reintentar</button>
               </div>
             </div>
           ) : vista === 'grid' ? (
@@ -1404,7 +1522,7 @@
     }
 
     /* ============================================================
-       9. PRÉSTAMOS
+       11. PRÉSTAMOS
        ============================================================ */
     function LoanPreview({ studentId, bookId }) {
       const { libros, estudiantes } = useData();
@@ -1582,7 +1700,7 @@
     }
 
     /* ============================================================
-       10. ERROR BOUNDARY
+       12. ERROR BOUNDARY
        ============================================================ */
     class ErrorBoundary extends React.Component {
       constructor(props) { super(props); this.state = { error: null }; }
@@ -1604,7 +1722,7 @@
     }
 
     /* ============================================================
-       11. APP
+       13. APP
        ============================================================ */
     function App() {
       const { estudiantes, crearEstudiante } = useData();
@@ -1667,13 +1785,11 @@
     }
 
     /* ============================================================
-       12. BOOT
+       14. BOOT
        ============================================================ */
     try {
-      // Inicializar store demo en el primer arranque
       initStore();
       setModo(MODO_API === 'local' ? 'local' : null);
-
       ReactDOM.createRoot(document.getElementById('root')).render(
         <ThemeProvider>
           <ToastProvider>
